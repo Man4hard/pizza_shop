@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:intl/intl.dart';
 import '../models/sale_record.dart';
-import '../services/api_service.dart';
+import '../services/database_service.dart';
 import '../theme/app_theme.dart';
 import '../widgets/stat_card.dart';
 
@@ -32,9 +32,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
     setState(() { _loading = true; _error = null; });
     try {
       final results = await Future.wait([
-        ApiService.getDashboardSummary(),
-        ApiService.getTopProducts(),
-        ApiService.getHourlySales(),
+        DatabaseService.getDashboardSummary(),
+        DatabaseService.getTopProducts(),
+        DatabaseService.getHourlySales(),
       ]);
       setState(() {
         _summary = results[0] as DashboardSummary;
