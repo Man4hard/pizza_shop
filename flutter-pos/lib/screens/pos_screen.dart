@@ -4,7 +4,7 @@ import 'package:intl/intl.dart';
 import '../models/category.dart';
 import '../models/product.dart';
 import '../models/order.dart';
-import '../services/api_service.dart';
+import '../services/database_service.dart';
 import '../services/cart_provider.dart';
 import '../theme/app_theme.dart';
 import '../widgets/product_card.dart';
@@ -47,8 +47,8 @@ class _PosScreenState extends State<PosScreen> {
     setState(() => _loading = true);
     try {
       final results = await Future.wait([
-        ApiService.getCategories(),
-        ApiService.getProducts(),
+        DatabaseService.getCategories(),
+        DatabaseService.getProducts(),
       ]);
       setState(() {
         _categories = results[0] as List<Category>;
@@ -68,7 +68,7 @@ class _PosScreenState extends State<PosScreen> {
   Future<void> _loadProducts(int? categoryId) async {
     setState(() => _selectedCategoryId = categoryId);
     try {
-      final products = await ApiService.getProducts(categoryId: categoryId);
+      final products = await DatabaseService.getProducts(categoryId: categoryId);
       setState(() => _products = products);
     } catch (e) {
       if (mounted) {
@@ -144,14 +144,14 @@ class _PosScreenState extends State<PosScreen> {
       );
       if (payment == null) return;
 
-      final order = await ApiService.createOrder(
+      final order = await DatabaseService.createOrder(
         items: cart.toOrderItems(),
         customerName: info['customerName'],
         tableNumber: info['tableNumber'],
         notes: info['notes'],
       );
 
-      final completed = await ApiService.completeOrder(
+      final completed = await DatabaseService.completeOrder(
         order.id,
         payment['method'],
         discount: payment['discount'] ?? 0,
