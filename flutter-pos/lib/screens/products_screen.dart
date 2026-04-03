@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../models/category.dart';
 import '../models/product.dart';
-import '../services/api_service.dart';
+import '../services/database_service.dart';
 import '../theme/app_theme.dart';
 
 class ProductsScreen extends StatefulWidget {
@@ -37,8 +37,8 @@ class _ProductsScreenState extends State<ProductsScreen> {
     setState(() => _loading = true);
     try {
       final results = await Future.wait([
-        ApiService.getCategories(),
-        ApiService.getProducts(),
+        DatabaseService.getCategories(),
+        DatabaseService.getProducts(),
       ]);
       setState(() {
         _categories = results[0] as List<Category>;
@@ -76,7 +76,7 @@ class _ProductsScreenState extends State<ProductsScreen> {
   // ── Toggle availability ───────────────────────────────────────────
   Future<void> _toggleAvailability(Product p) async {
     try {
-      await ApiService.updateProduct(p.id, {
+      await DatabaseService.updateProduct(p.id, {
         'name': p.name,
         'price': p.price,
         'categoryId': p.categoryId,
@@ -117,7 +117,7 @@ class _ProductsScreenState extends State<ProductsScreen> {
     );
     if (confirmed != true) return;
     try {
-      await ApiService.deleteProduct(p.id);
+      await DatabaseService.deleteProduct(p.id);
       await _loadData();
       _showSuccess('${p.name} deleted');
     } catch (e) {
@@ -275,10 +275,10 @@ class _ProductsScreenState extends State<ProductsScreen> {
                                   'available': available,
                                 };
                                 if (existing == null) {
-                                  await ApiService.createProduct(data);
+                                  await DatabaseService.createProduct(data);
                                   _showSuccess('Product added!');
                                 } else {
-                                  await ApiService.updateProduct(existing.id, data);
+                                  await DatabaseService.updateProduct(existing.id, data);
                                   _showSuccess('Product updated!');
                                 }
                                 await _loadData();
