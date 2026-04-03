@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../models/sale_record.dart';
-import '../services/api_service.dart';
+import '../services/database_service.dart';
 import '../theme/app_theme.dart';
 
 class SalesScreen extends StatefulWidget {
@@ -30,7 +30,7 @@ class _SalesScreenState extends State<SalesScreen> {
   Future<void> _load() async {
     setState(() { _loading = true; _error = null; });
     try {
-      final sales = await ApiService.getSales(
+      final sales = await DatabaseService.getSales(
         startDate: _dateRange?.start.toIso8601String(),
         endDate: _dateRange?.end.toIso8601String(),
       );
