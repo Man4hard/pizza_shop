@@ -1,89 +1,113 @@
-# SlicePOS Flutter App - Setup Guide
+# Ahmed Fast Food POS — Setup Guide
+
+## Overview
+**Fully offline** Flutter app for Android & Windows desktop.
+No internet, no server, no backend needed — all data is stored locally using SQLite.
+
+---
 
 ## Requirements
-- Flutter SDK 3.0+
-- Android Studio (for Android) or Xcode (for iOS/macOS)
-- Dart SDK (bundled with Flutter)
 
-## 1. Install Dependencies
+| Tool | Where to get |
+|---|---|
+| Flutter SDK (3.x) | https://flutter.dev/docs/get-started/install |
+| Android Studio | https://developer.android.com/studio |
+| Windows Desktop: Visual Studio Build Tools | https://visualstudio.microsoft.com/downloads/ |
 
-```bash
+---
+
+## Setup Steps
+
+### 1. Clone the repository
+```
+git clone https://github.com/Man4hard/pizza_shop.git
+cd pizza_shop/flutter-pos
+```
+
+### 2. Install dependencies
+```
 flutter pub get
 ```
 
-## 2. Configure the API URL
-
-Open `lib/services/api_service.dart` and change the base URL to point to your Laravel server:
-
-```dart
-static const String baseUrl = 'http://YOUR_SERVER_IP/api';
+### 3. Run on Android (emulator or real device)
 ```
-
-Examples:
-- Local development: `http://192.168.1.100/api`
-- Android emulator connecting to local machine: `http://10.0.2.2/api`
-- Production server: `https://yourserver.com/api`
-
-## 3. Run the App
-
-```bash
-# For Android
 flutter run
-
-# For specific device
-flutter run -d <device-id>
-
-# List available devices
-flutter devices
 ```
 
-## 4. Build for Release
-
-```bash
-# Android APK
+### 4. Build Android APK
+```
 flutter build apk --release
-
-# Android App Bundle (for Play Store)
-flutter build appbundle --release
 ```
+APK location: `build/app/outputs/flutter-apk/app-release.apk`
+
+### 5. Build for Windows Desktop
+```
+flutter config --enable-windows-desktop
+flutter build windows --release
+```
+Executable location: `build/windows/x64/runner/Release/ahmed_pos.exe`
+
+---
+
+## First Launch
+On first launch the app automatically:
+- Creates a local SQLite database on the device/PC
+- Seeds all 51 products across 5 categories with correct prices
+- Ready to take orders immediately — no configuration needed
+
+---
+
+## Install APK on Android Tablet
+1. Copy `app-release.apk` to your tablet via USB or WhatsApp
+2. Go to Settings → Security → Enable "Install Unknown Apps"
+3. Open the APK and tap Install
+4. Done!
+
+---
+
+## Features
+- **POS Screen** — Take orders, pick pizza sizes, view cart, print bills
+- **Orders Screen** — View pending / completed / cancelled orders
+- **Sales History** — Filter by date range, see daily totals
+- **Dashboard** — Today's sales, top products, hourly chart
+- **Products Manager** — Add / edit / delete products, toggle availability
+
+---
 
 ## App Structure
 
 ```
 lib/
-├── main.dart              # App entry point & navigation
+├── main.dart                  # App entry point & SQLite init
 ├── theme/
-│   └── app_theme.dart     # Dark theme & colors
+│   └── app_theme.dart         # Dark theme & colors
 ├── models/
-│   ├── category.dart      # Category model
-│   ├── product.dart       # Product model
-│   ├── order.dart         # Order, OrderItem, CartItem models
-│   └── sale_record.dart   # Sales models
+│   ├── category.dart
+│   ├── product.dart
+│   ├── order.dart
+│   └── sale_record.dart
 ├── services/
-│   ├── api_service.dart   # All API calls to Laravel backend
-│   └── cart_provider.dart # State management for cart
+│   ├── database_service.dart  # ALL local SQLite operations
+│   └── cart_provider.dart     # Cart state management
 ├── screens/
-│   ├── pos_screen.dart    # Main POS ordering screen
-│   ├── orders_screen.dart # Orders list (pending/completed/cancelled)
-│   ├── sales_screen.dart  # Sales history with date filter
-│   └── dashboard_screen.dart # Analytics & daily summary
+│   ├── pos_screen.dart
+│   ├── orders_screen.dart
+│   ├── sales_screen.dart
+│   ├── dashboard_screen.dart
+│   └── products_screen.dart
 └── widgets/
-    ├── product_card.dart   # Product tile with quantity control
-    ├── cart_item_tile.dart # Cart item row (swipe to delete)
-    ├── payment_dialog.dart # Payment method & discount dialog
-    ├── bill_dialog.dart    # Receipt/bill viewer with print option
-    └── stat_card.dart      # Dashboard stat card
+    ├── product_card.dart
+    ├── cart_item_tile.dart
+    ├── payment_dialog.dart
+    ├── bill_dialog.dart
+    └── stat_card.dart
 ```
 
-## Features
-- Desktop-first split-screen layout (menu + cart side-by-side)
-- Mobile bottom navigation
-- Dark themed UI with pizza-red accent color
-- Real-time cart with quantity controls
-- Customer name, table number, order notes
-- Cash, Card, Digital payment options
-- Discount support
-- Bill/receipt viewer with print button
-- Sales history with date range filter
-- Dashboard with hourly sales chart & top products
-- Swipe-to-delete cart items
+---
+
+## Data Storage
+All data is stored in a local SQLite file — no internet required:
+- **Android:** `/data/data/com.ahmed.pos/databases/ahmed_pos.db`
+- **Windows:** `%LOCALAPPDATA%\ahmed_pos\ahmed_pos.db`
+
+Data persists across restarts and is never lost unless the app is uninstalled.
