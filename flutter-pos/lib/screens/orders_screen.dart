@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../models/order.dart';
-import '../services/api_service.dart';
+import '../services/database_service.dart';
 import '../theme/app_theme.dart';
 import '../widgets/bill_dialog.dart';
 
@@ -47,7 +47,7 @@ class _OrdersScreenState extends State<OrdersScreen>
   Future<void> _loadOrders() async {
     setState(() { _loading = true; _error = null; });
     try {
-      final orders = await ApiService.getOrders(status: _selectedStatus);
+      final orders = await DatabaseService.getOrders(status: _selectedStatus);
       setState(() { _orders = orders; _loading = false; });
     } catch (e) {
       setState(() { _error = e.toString(); _loading = false; });
@@ -56,7 +56,7 @@ class _OrdersScreenState extends State<OrdersScreen>
 
   Future<void> _viewBill(Order order) async {
     try {
-      final detail = await ApiService.getOrder(order.id);
+      final detail = await DatabaseService.getOrder(order.id);
       if (mounted) {
         await showDialog(context: context, builder: (_) => BillDialog(order: detail));
       }
@@ -94,7 +94,7 @@ class _OrdersScreenState extends State<OrdersScreen>
     );
     if (confirm == true) {
       try {
-        await ApiService.cancelOrder(order.id);
+        await DatabaseService.cancelOrder(order.id);
         _loadOrders();
       } catch (e) {
         if (mounted) {
