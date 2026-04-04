@@ -84,7 +84,7 @@ class _ProductsScreenState extends State<ProductsScreen> {
         'available': !p.available,
       });
       await _loadData();
-      _showSuccess('${p.name} ${!p.available ? "enabled" : "disabled"}');
+      _showSuccess('${p.name} ${p.available ? "disabled" : "enabled"}');
     } catch (e) {
       _showError('Update failed: $e');
     }
@@ -490,7 +490,7 @@ class _ProductsScreenState extends State<ProductsScreen> {
                   borderRadius: BorderRadius.circular(6),
                 ),
                 child: Text(
-                  p.categoryId.toString(),  // Will show category name after enhancement
+                  p.categoryName ?? 'Category ${p.categoryId}',
                   style: const TextStyle(color: AppColors.textMuted, fontSize: 11),
                 ),
               ),
