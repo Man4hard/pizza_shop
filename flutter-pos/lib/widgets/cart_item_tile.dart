@@ -19,7 +19,7 @@ class CartItemTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final currency = NumberFormat.currency(symbol: '\$', decimalDigits: 2);
+    final currency = NumberFormat.currency(symbol: 'Rs. ', decimalDigits: 0);
     return Dismissible(
       key: Key('cart-item-${item.productId}'),
       direction: DismissDirection.endToStart,
