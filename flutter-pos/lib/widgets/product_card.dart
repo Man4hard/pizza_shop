@@ -3,6 +3,14 @@ import 'package:intl/intl.dart';
 import '../models/product.dart';
 import '../theme/app_theme.dart';
 
+String _categoryEmoji(String categoryName) {
+  final n = categoryName.toLowerCase();
+  if (n.contains('deal')) return '🎁';
+  if (n.contains('burger') || n.contains('shawarma')) return '🍔';
+  if (n.contains('crispy') || n.contains('grilled')) return '🍗';
+  return '🍕';
+}
+
 class ProductCard extends StatelessWidget {
   final Product product;
   final int quantity;
@@ -38,13 +46,7 @@ class ProductCard extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              product.categoryId == 1 || product.categoryId == 2
-                  ? '🍕'
-                  : product.categoryId == 3
-                      ? '🍔'
-                      : product.categoryId == 4
-                          ? '🍗'
-                          : '🎁',
+              _categoryEmoji(product.categoryName ?? ''),
               style: const TextStyle(fontSize: 28),
             ),
             const SizedBox(height: 8),
