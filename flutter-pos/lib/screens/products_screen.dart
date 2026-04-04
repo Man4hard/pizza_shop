@@ -426,11 +426,29 @@ class _ProductsScreenState extends State<ProductsScreen> {
     return RefreshIndicator(
       color: AppColors.primary,
       onRefresh: _loadData,
-      child: ListView.separated(
-        padding: const EdgeInsets.fromLTRB(20, 12, 20, 100),
-        itemCount: items.length,
-        separatorBuilder: (_, __) => const SizedBox(height: 8),
-        itemBuilder: (_, i) => _buildProductTile(items[i]),
+      child: LayoutBuilder(
+        builder: (_, constraints) {
+          final isWide = constraints.maxWidth >= 700;
+          if (isWide) {
+            return GridView.builder(
+              padding: const EdgeInsets.fromLTRB(20, 12, 20, 100),
+              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: 2,
+                crossAxisSpacing: 12,
+                mainAxisSpacing: 8,
+                childAspectRatio: 3.5,
+              ),
+              itemCount: items.length,
+              itemBuilder: (_, i) => _buildProductTile(items[i]),
+            );
+          }
+          return ListView.separated(
+            padding: const EdgeInsets.fromLTRB(20, 12, 20, 100),
+            itemCount: items.length,
+            separatorBuilder: (_, __) => const SizedBox(height: 8),
+            itemBuilder: (_, i) => _buildProductTile(items[i]),
+          );
+        },
       ),
     );
   }
