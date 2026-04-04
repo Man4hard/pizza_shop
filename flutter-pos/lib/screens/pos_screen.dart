@@ -487,13 +487,16 @@ class _PosScreenState extends State<PosScreen> {
       );
     }
     return Consumer<CartProvider>(
-      builder: (_, cart, __) => GridView.builder(
+      builder: (_, cart, __) => LayoutBuilder(
+        builder: (_, constraints) {
+          final cols = constraints.maxWidth > 600 ? 3 : 2;
+          return GridView.builder(
         padding: const EdgeInsets.all(20),
-        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-          crossAxisCount: 2,
+        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+          crossAxisCount: cols,
           mainAxisSpacing: 16,
           crossAxisSpacing: 16,
-          childAspectRatio: 1.2,
+          childAspectRatio: cols == 3 ? 1.1 : 1.2,
         ),
         itemCount: groups.length,
         itemBuilder: (_, i) {
@@ -517,6 +520,8 @@ class _PosScreenState extends State<PosScreen> {
               onTap: () => cart.addProduct(product),
             );
           }
+        },
+          );
         },
       ),
     );
