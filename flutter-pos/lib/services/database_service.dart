@@ -1,6 +1,4 @@
-import 'dart:io';
 import 'package:sqflite/sqflite.dart';
-import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 import 'package:path/path.dart' as p;
 import '../models/category.dart';
 import '../models/product.dart';
@@ -18,11 +16,6 @@ class DatabaseService {
   // ─── Init ─────────────────────────────────────────────────────────────────
 
   static Future<Database> _initDb() async {
-    if (Platform.isWindows || Platform.isLinux || Platform.isMacOS) {
-      sqfliteFfiInit();
-      databaseFactory = databaseFactoryFfi;
-    }
-
     final dbPath = await getDatabasesPath();
     final path = p.join(dbPath, 'ahmed_pos.db');
 
