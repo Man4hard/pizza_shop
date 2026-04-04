@@ -74,6 +74,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
   Widget _buildContent() {
     final s = _summary!;
+    final isWide = MediaQuery.of(context).size.width >= 700;
     return RefreshIndicator(
       onRefresh: _load,
       color: AppColors.primary,
@@ -85,20 +86,54 @@ class _DashboardScreenState extends State<DashboardScreen> {
           children: [
             _buildHeader(),
             const SizedBox(height: 24),
-            _buildStatCards(s),
+            _buildStatCards(s, columns: isWide ? 4 : 2),
             const SizedBox(height: 28),
             _buildOrderStatusRow(s),
             const SizedBox(height: 28),
-            if (_hourlySales.isNotEmpty) ...[
-              _buildSectionTitle('Sales Today by Hour'),
-              const SizedBox(height: 16),
-              _buildHourlyChart(),
-              const SizedBox(height: 28),
-            ],
-            if (_topProducts.isNotEmpty) ...[
-              _buildSectionTitle('Top Selling Products'),
-              const SizedBox(height: 16),
-              _buildTopProducts(),
+            if (isWide) ...[
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  if (_hourlySales.isNotEmpty)
+                    Expanded(
+                      flex: 2,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          _buildSectionTitle('Sales Today by Hour'),
+                          const SizedBox(height: 16),
+                          _buildHourlyChart(),
+                        ],
+                      ),
+                    ),
+                  if (_hourlySales.isNotEmpty && _topProducts.isNotEmpty)
+                    const SizedBox(width: 24),
+                  if (_topProducts.isNotEmpty)
+                    Expanded(
+                      flex: 3,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          _buildSectionTitle('Top Selling Products'),
+                          const SizedBox(height: 16),
+                          _buildTopProducts(),
+                        ],
+                      ),
+                    ),
+                ],
+              ),
+            ] else ...[
+              if (_hourlySales.isNotEmpty) ...[
+                _buildSectionTitle('Sales Today by Hour'),
+                const SizedBox(height: 16),
+                _buildHourlyChart(),
+                const SizedBox(height: 28),
+              ],
+              if (_topProducts.isNotEmpty) ...[
+                _buildSectionTitle('Top Selling Products'),
+                const SizedBox(height: 16),
+                _buildTopProducts(),
+              ],
             ],
           ],
         ),
@@ -148,11 +183,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
     return 'Evening';
   }
 
-  Widget _buildStatCards(DashboardSummary s) => GridView.count(
-    crossAxisCount: 2,
+  Widget _buildStatCards(DashboardSummary s, {int columns = 2}) => GridView.count(
+    crossAxisCount: columns,
     crossAxisSpacing: 16,
     mainAxisSpacing: 16,
-    childAspectRatio: 1.55,
+    childAspectRatio: columns == 4 ? 1.8 : 1.55,
     shrinkWrap: true,
     physics: const NeverScrollableScrollPhysics(),
     children: [
