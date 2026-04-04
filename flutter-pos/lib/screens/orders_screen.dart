@@ -162,10 +162,28 @@ class _OrdersScreenState extends State<OrdersScreen>
                   : RefreshIndicator(
                       onRefresh: _loadOrders,
                       color: AppColors.primary,
-                      child: ListView.builder(
-                        padding: const EdgeInsets.all(20),
-                        itemCount: _orders.length,
-                        itemBuilder: (_, i) => _buildOrderCard(_orders[i]),
+                      child: LayoutBuilder(
+                        builder: (_, constraints) {
+                          final isWide = constraints.maxWidth >= 700;
+                          if (isWide) {
+                            return GridView.builder(
+                              padding: const EdgeInsets.all(20),
+                              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                                crossAxisCount: 2,
+                                crossAxisSpacing: 16,
+                                mainAxisSpacing: 0,
+                                childAspectRatio: 2.4,
+                              ),
+                              itemCount: _orders.length,
+                              itemBuilder: (_, i) => _buildOrderCard(_orders[i]),
+                            );
+                          }
+                          return ListView.builder(
+                            padding: const EdgeInsets.all(20),
+                            itemCount: _orders.length,
+                            itemBuilder: (_, i) => _buildOrderCard(_orders[i]),
+                          );
+                        },
                       ),
                     ),
     );
