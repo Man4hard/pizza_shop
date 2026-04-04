@@ -87,19 +87,37 @@ class _SalesScreenState extends State<SalesScreen> {
                         : RefreshIndicator(
                             onRefresh: _load,
                             color: AppColors.primary,
-                            child: CustomScrollView(
-                              slivers: [
-                                SliverToBoxAdapter(child: _buildSummary()),
-                                SliverPadding(
-                                  padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
-                                  sliver: SliverList(
-                                    delegate: SliverChildBuilderDelegate(
-                                      (_, i) => _buildSaleTile(_sales[i]),
-                                      childCount: _sales.length,
+                            child: LayoutBuilder(
+                              builder: (_, constraints) {
+                                final isWide = constraints.maxWidth >= 700;
+                                return CustomScrollView(
+                                  slivers: [
+                                    SliverToBoxAdapter(child: _buildSummary()),
+                                    SliverPadding(
+                                      padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
+                                      sliver: isWide
+                                          ? SliverGrid(
+                                              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                                                crossAxisCount: 2,
+                                                crossAxisSpacing: 16,
+                                                mainAxisSpacing: 0,
+                                                childAspectRatio: 3.2,
+                                              ),
+                                              delegate: SliverChildBuilderDelegate(
+                                                (_, i) => _buildSaleTile(_sales[i]),
+                                                childCount: _sales.length,
+                                              ),
+                                            )
+                                          : SliverList(
+                                              delegate: SliverChildBuilderDelegate(
+                                                (_, i) => _buildSaleTile(_sales[i]),
+                                                childCount: _sales.length,
+                                              ),
+                                            ),
                                     ),
-                                  ),
-                                ),
-                              ],
+                                  ],
+                                );
+                              },
                             ),
                           ),
           ),
@@ -108,9 +126,11 @@ class _SalesScreenState extends State<SalesScreen> {
     );
   }
 
-  Widget _buildHeader() => Container(
+  Widget _buildHeader() => SafeArea(
+    bottom: false,
+    child: Container(
     color: AppColors.surface,
-    padding: const EdgeInsets.fromLTRB(20, 20, 20, 16),
+    padding: const EdgeInsets.fromLTRB(20, 12, 20, 16),
     child: Row(
       children: [
         const Text(
@@ -147,6 +167,7 @@ class _SalesScreenState extends State<SalesScreen> {
           ),
       ],
     ),
+  ),
   );
 
   Widget _buildSummary() {
