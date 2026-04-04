@@ -68,7 +68,7 @@ class _PaymentDialogState extends State<PaymentDialog> {
                     style: const TextStyle(color: AppColors.textPrimary, textBaseline: TextBaseline.alphabetic),
                     textAlign: TextAlign.right,
                     decoration: InputDecoration(
-                      prefixText: '\$',
+                      prefixText: 'Rs. ',
                       prefixStyle: const TextStyle(color: AppColors.textMuted),
                       isDense: true,
                       contentPadding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
