@@ -230,17 +230,174 @@ class _PosScreenState extends State<PosScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final isMobile = MediaQuery.of(context).size.width < 700;
     return Scaffold(
       backgroundColor: AppColors.background,
       body: _loading
           ? const Center(child: CircularProgressIndicator(color: AppColors.primary))
-          : Row(
+          : isMobile
+              ? _buildMobileLayout()
+              : Row(
+                  children: [
+                    Expanded(flex: 3, child: _buildMenuPanel()),
+                    Container(width: 1, color: AppColors.divider),
+                    SizedBox(width: 340, child: _buildCartPanel()),
+                  ],
+                ),
+    );
+  }
+
+  // ── Mobile layout: full-screen menu + cart bottom bar ──────────────
+
+  Widget _buildMobileLayout() => Consumer<CartProvider>(
+    builder: (_, cart, __) => Column(
+      children: [
+        Expanded(child: _buildMenuPanel()),
+        _buildMobileCartBar(cart),
+      ],
+    ),
+  );
+
+  Widget _buildMobileCartBar(CartProvider cart) => Container(
+    decoration: const BoxDecoration(
+      color: AppColors.surface,
+      border: Border(top: BorderSide(color: AppColors.divider)),
+    ),
+    child: SafeArea(
+      top: false,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+        child: Row(
+          children: [
+            Stack(
               children: [
-                Expanded(flex: 3, child: _buildMenuPanel()),
-                Container(width: 1, color: AppColors.divider),
-                SizedBox(width: 340, child: _buildCartPanel()),
+                IconButton(
+                  onPressed: cart.items.isNotEmpty ? () => _showCartSheet() : null,
+                  icon: Icon(
+                    Icons.shopping_cart_rounded,
+                    color: cart.items.isNotEmpty ? AppColors.textPrimary : AppColors.textMuted,
+                  ),
+                ),
+                if (cart.items.isNotEmpty)
+                  Positioned(
+                    right: 4, top: 4,
+                    child: Container(
+                      width: 18, height: 18,
+                      decoration: const BoxDecoration(color: AppColors.primary, shape: BoxShape.circle),
+                      child: Center(
+                        child: Text(
+                          '${cart.itemCount}',
+                          style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.w700),
+                        ),
+                      ),
+                    ),
+                  ),
               ],
             ),
+            const SizedBox(width: 4),
+            if (cart.items.isNotEmpty) ...[
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      '${cart.itemCount} item${cart.itemCount == 1 ? '' : 's'}',
+                      style: const TextStyle(color: AppColors.textMuted, fontSize: 12),
+                    ),
+                    Text(
+                      _currency.format(cart.total),
+                      style: const TextStyle(color: AppColors.textPrimary, fontWeight: FontWeight.w700, fontSize: 15),
+                    ),
+                  ],
+                ),
+              ),
+              ElevatedButton(
+                onPressed: _placeOrder,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.primary,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 13),
+                ),
+                child: const Text('Checkout', style: TextStyle(fontWeight: FontWeight.w700, fontSize: 14)),
+              ),
+            ] else
+              const Expanded(
+                child: Text('Tap items to add them to cart', style: TextStyle(color: AppColors.textMuted, fontSize: 13)),
+              ),
+          ],
+        ),
+      ),
+    ),
+  );
+
+  void _showCartSheet() {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (sheetCtx) => Container(
+        height: MediaQuery.of(context).size.height * 0.85,
+        decoration: const BoxDecoration(
+          color: AppColors.surface,
+          borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+        ),
+        child: Consumer<CartProvider>(
+          builder: (_, cart, __) => Column(
+            children: [
+              Center(
+                child: Container(
+                  margin: const EdgeInsets.only(top: 12),
+                  width: 40, height: 4,
+                  decoration: BoxDecoration(color: AppColors.divider, borderRadius: BorderRadius.circular(2)),
+                ),
+              ),
+              _buildCartHeader(cart),
+              Expanded(child: _buildCartItems(cart)),
+              _buildCartSummary(cart),
+              Padding(
+                padding: EdgeInsets.only(
+                  left: 16, right: 16,
+                  bottom: MediaQuery.of(sheetCtx).padding.bottom + 12,
+                  top: 8,
+                ),
+                child: Row(
+                  children: [
+                    OutlinedButton(
+                      onPressed: () => Navigator.pop(sheetCtx),
+                      style: OutlinedButton.styleFrom(
+                        foregroundColor: AppColors.textSecondary,
+                        side: const BorderSide(color: AppColors.cardBorder),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                        padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 20),
+                      ),
+                      child: const Text('Close'),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: ElevatedButton.icon(
+                        onPressed: cart.items.isNotEmpty
+                            ? () {
+                                Navigator.pop(sheetCtx);
+                                _placeOrder();
+                              }
+                            : null,
+                        icon: const Icon(Icons.point_of_sale_rounded),
+                        label: Text(
+                          cart.items.isEmpty
+                              ? 'Add items'
+                              : 'Checkout • ${_currency.format(cart.total)}',
+                          style: const TextStyle(fontSize: 14),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 
