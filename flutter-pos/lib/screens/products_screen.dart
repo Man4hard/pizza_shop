@@ -4,6 +4,7 @@ import '../models/category.dart';
 import '../models/product.dart';
 import '../services/database_service.dart';
 import '../theme/app_theme.dart';
+import '../theme/breakpoints.dart';
 
 class ProductsScreen extends StatefulWidget {
   const ProductsScreen({super.key});
@@ -743,8 +744,8 @@ class _ProductsScreenState extends State<ProductsScreen>
       onRefresh: _loadData,
       child: LayoutBuilder(
         builder: (_, constraints) {
-          final isWide = constraints.maxWidth >= 700;
-          if (isWide) {
+          final w = constraints.maxWidth;
+          if (Breakpoints.isWide(w)) {
             return GridView.builder(
               padding: const EdgeInsets.fromLTRB(20, 12, 20, 100),
               gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
@@ -926,15 +927,16 @@ class _ProductsScreenState extends State<ProductsScreen>
       onRefresh: _loadData,
       child: LayoutBuilder(
         builder: (_, constraints) {
-          final isWide = constraints.maxWidth >= 700;
-          if (isWide) {
+          final w = constraints.maxWidth;
+          final cols = Breakpoints.isDesktop(w) ? 3 : Breakpoints.isTablet(w) ? 2 : 1;
+          if (cols > 1) {
             return GridView.builder(
               padding: const EdgeInsets.fromLTRB(20, 16, 20, 100),
-              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 3,
+              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: cols,
                 crossAxisSpacing: 14,
                 mainAxisSpacing: 14,
-                childAspectRatio: 1.7,
+                childAspectRatio: cols == 3 ? 1.7 : 1.9,
               ),
               itemCount: _categories.length,
               itemBuilder: (_, i) => _buildCategoryCard(_categories[i]),
