@@ -3,6 +3,7 @@ import 'package:intl/intl.dart';
 import '../models/sale_record.dart';
 import '../services/database_service.dart';
 import '../theme/app_theme.dart';
+import '../theme/breakpoints.dart';
 
 class SalesScreen extends StatefulWidget {
   const SalesScreen({super.key});
@@ -89,7 +90,7 @@ class _SalesScreenState extends State<SalesScreen> {
                             color: AppColors.primary,
                             child: LayoutBuilder(
                               builder: (_, constraints) {
-                                final isWide = constraints.maxWidth >= 700;
+                                final isWide = Breakpoints.isWide(constraints.maxWidth);
                                 return CustomScrollView(
                                   slivers: [
                                     SliverToBoxAdapter(child: _buildSummary()),
