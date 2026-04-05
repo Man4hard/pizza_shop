@@ -4,6 +4,7 @@ import 'package:intl/intl.dart';
 import '../models/sale_record.dart';
 import '../services/database_service.dart';
 import '../theme/app_theme.dart';
+import '../theme/breakpoints.dart';
 import '../widgets/stat_card.dart';
 
 class DashboardScreen extends StatefulWidget {
@@ -74,7 +75,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
   Widget _buildContent() {
     final s = _summary!;
-    final isWide = MediaQuery.of(context).size.width >= 700;
+    final isWide = Breakpoints.isWide(MediaQuery.of(context).size.width);
     return RefreshIndicator(
       onRefresh: _load,
       color: AppColors.primary,
