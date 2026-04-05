@@ -11,6 +11,7 @@ import 'screens/sales_screen.dart';
 import 'screens/dashboard_screen.dart';
 import 'screens/products_screen.dart';
 import 'theme/app_theme.dart';
+import 'theme/breakpoints.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -58,15 +59,24 @@ class _HomeShellState extends State<HomeShell> {
     ProductsScreen(),
   ];
 
+  static const _navItems = [
+    _NavItem(Icons.point_of_sale_outlined, Icons.point_of_sale_rounded, 'POS', 'Point of Sale'),
+    _NavItem(Icons.receipt_long_outlined, Icons.receipt_long_rounded, 'Orders', 'Orders'),
+    _NavItem(Icons.bar_chart_outlined, Icons.bar_chart_rounded, 'Sales', 'Sales History'),
+    _NavItem(Icons.dashboard_outlined, Icons.dashboard_rounded, 'Dashboard', 'Dashboard'),
+    _NavItem(Icons.inventory_2_outlined, Icons.inventory_2_rounded, 'Products', 'Manage Products'),
+  ];
+
   @override
   Widget build(BuildContext context) {
-    final isWide = MediaQuery.of(context).size.width > 900;
+    final width = MediaQuery.of(context).size.width;
 
-    if (isWide) {
-      return _buildDesktopLayout();
-    }
-    return _buildMobileLayout();
+    if (Breakpoints.isDesktop(width)) return _buildDesktopLayout();
+    if (Breakpoints.isTablet(width))  return _buildTabletLayout();
+    return _buildPhoneLayout();
   }
+
+  // ── Desktop (≥ 900px) — full sidebar ────────────────────────────
 
   Widget _buildDesktopLayout() => Scaffold(
     backgroundColor: AppColors.background,
@@ -76,53 +86,6 @@ class _HomeShellState extends State<HomeShell> {
         Container(width: 1, color: AppColors.divider),
         Expanded(child: _pages[_selectedIndex]),
       ],
-    ),
-  );
-
-  Widget _buildMobileLayout() => Scaffold(
-    backgroundColor: AppColors.background,
-    body: _pages[_selectedIndex],
-    bottomNavigationBar: Container(
-      decoration: const BoxDecoration(
-        color: AppColors.surface,
-        border: Border(top: BorderSide(color: AppColors.divider)),
-      ),
-      child: SafeArea(
-        child: NavigationBar(
-          backgroundColor: Colors.transparent,
-          elevation: 0,
-          selectedIndex: _selectedIndex,
-          onDestinationSelected: (i) => setState(() => _selectedIndex = i),
-          indicatorColor: AppColors.primary.withOpacity(0.15),
-          destinations: const [
-            NavigationDestination(
-              icon: Icon(Icons.point_of_sale_outlined),
-              selectedIcon: Icon(Icons.point_of_sale_rounded, color: AppColors.primary),
-              label: 'POS',
-            ),
-            NavigationDestination(
-              icon: Icon(Icons.receipt_long_outlined),
-              selectedIcon: Icon(Icons.receipt_long_rounded, color: AppColors.primary),
-              label: 'Orders',
-            ),
-            NavigationDestination(
-              icon: Icon(Icons.bar_chart_outlined),
-              selectedIcon: Icon(Icons.bar_chart_rounded, color: AppColors.primary),
-              label: 'Sales',
-            ),
-            NavigationDestination(
-              icon: Icon(Icons.dashboard_outlined),
-              selectedIcon: Icon(Icons.dashboard_rounded, color: AppColors.primary),
-              label: 'Dashboard',
-            ),
-            NavigationDestination(
-              icon: Icon(Icons.inventory_2_outlined),
-              selectedIcon: Icon(Icons.inventory_2_rounded, color: AppColors.primary),
-              label: 'Products',
-            ),
-          ],
-        ),
-      ),
     ),
   );
 
@@ -147,36 +110,39 @@ class _HomeShellState extends State<HomeShell> {
                 child: const Icon(Icons.local_pizza_rounded, color: Colors.white, size: 22),
               ),
               const SizedBox(width: 12),
-              const Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'Ahmed Fast Food',
-                    style: TextStyle(
-                      color: AppColors.textPrimary,
-                      fontWeight: FontWeight.w800,
-                      fontSize: 16,
+              const Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Ahmed Fast Food',
+                      style: TextStyle(
+                        color: AppColors.textPrimary,
+                        fontWeight: FontWeight.w800,
+                        fontSize: 15,
+                      ),
+                      overflow: TextOverflow.ellipsis,
                     ),
-                  ),
-                  Text(
-                    'Pizza & Barbeque',
-                    style: TextStyle(color: AppColors.textMuted, fontSize: 12),
-                  ),
-                ],
+                    Text(
+                      'Pizza & Barbeque',
+                      style: TextStyle(color: AppColors.textMuted, fontSize: 12),
+                    ),
+                  ],
+                ),
               ),
             ],
           ),
         ),
-        const SizedBox(height: 32),
-        _navItem(0, Icons.point_of_sale_rounded, 'Point of Sale'),
-        _navItem(1, Icons.receipt_long_rounded, 'Orders'),
-        _navItem(2, Icons.bar_chart_rounded, 'Sales History'),
-        _navItem(3, Icons.dashboard_rounded, 'Dashboard'),
+        const SizedBox(height: 28),
+        _sidebarItem(0),
+        _sidebarItem(1),
+        _sidebarItem(2),
+        _sidebarItem(3),
         const Padding(
-          padding: EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+          padding: EdgeInsets.symmetric(horizontal: 20, vertical: 10),
           child: Divider(color: AppColors.divider, height: 1),
         ),
-        _navItem(4, Icons.inventory_2_rounded, 'Manage Products'),
+        _sidebarItem(4),
         const Spacer(),
         Consumer<CartProvider>(
           builder: (_, cart, __) => cart.items.isNotEmpty
@@ -193,7 +159,7 @@ class _HomeShellState extends State<HomeShell> {
                       const Icon(Icons.shopping_cart_rounded, color: AppColors.primary, size: 18),
                       const SizedBox(width: 8),
                       Text(
-                        '${cart.itemCount} items in cart',
+                        '${cart.itemCount} in cart',
                         style: const TextStyle(color: AppColors.primary, fontWeight: FontWeight.w600, fontSize: 13),
                       ),
                     ],
@@ -206,14 +172,15 @@ class _HomeShellState extends State<HomeShell> {
     ),
   );
 
-  Widget _navItem(int index, IconData icon, String label) {
+  Widget _sidebarItem(int index) {
+    final item = _navItems[index];
     final selected = _selectedIndex == index;
     return GestureDetector(
       onTap: () => setState(() => _selectedIndex = index),
       child: AnimatedContainer(
-        duration: const Duration(milliseconds: 200),
-        margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 13),
+        duration: const Duration(milliseconds: 180),
+        margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 3),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         decoration: BoxDecoration(
           color: selected ? AppColors.primary.withOpacity(0.15) : Colors.transparent,
           borderRadius: BorderRadius.circular(12),
@@ -222,13 +189,13 @@ class _HomeShellState extends State<HomeShell> {
         child: Row(
           children: [
             Icon(
-              icon,
+              selected ? item.activeIcon : item.icon,
               color: selected ? AppColors.primary : AppColors.textMuted,
               size: 20,
             ),
             const SizedBox(width: 12),
             Text(
-              label,
+              item.longLabel,
               style: TextStyle(
                 color: selected ? AppColors.primary : AppColors.textSecondary,
                 fontWeight: selected ? FontWeight.w600 : FontWeight.w400,
@@ -240,4 +207,96 @@ class _HomeShellState extends State<HomeShell> {
       ),
     ).animate(target: selected ? 1 : 0);
   }
+
+  // ── Tablet (600–900px) — navigation rail ────────────────────────
+
+  Widget _buildTabletLayout() => Scaffold(
+    backgroundColor: AppColors.background,
+    body: Row(
+      children: [
+        _buildNavigationRail(),
+        Container(width: 1, color: AppColors.divider),
+        Expanded(child: _pages[_selectedIndex]),
+      ],
+    ),
+  );
+
+  Widget _buildNavigationRail() => SafeArea(
+    right: false,
+    child: NavigationRail(
+      backgroundColor: AppColors.surface,
+      selectedIndex: _selectedIndex,
+      onDestinationSelected: (i) => setState(() => _selectedIndex = i),
+      labelType: NavigationRailLabelType.all,
+      minWidth: 72,
+      minExtendedWidth: 160,
+      useIndicator: true,
+      indicatorColor: AppColors.primary.withOpacity(0.18),
+      selectedIconTheme: const IconThemeData(color: AppColors.primary, size: 22),
+      unselectedIconTheme: const IconThemeData(color: AppColors.textMuted, size: 22),
+      selectedLabelTextStyle: const TextStyle(
+        color: AppColors.primary,
+        fontWeight: FontWeight.w700,
+        fontSize: 11,
+      ),
+      unselectedLabelTextStyle: const TextStyle(
+        color: AppColors.textMuted,
+        fontSize: 11,
+      ),
+      leading: Padding(
+        padding: const EdgeInsets.only(top: 12, bottom: 8),
+        child: Container(
+          width: 40,
+          height: 40,
+          decoration: BoxDecoration(
+            color: AppColors.primary,
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: const Icon(Icons.local_pizza_rounded, color: Colors.white, size: 22),
+        ),
+      ),
+      destinations: _navItems.map((item) => NavigationRailDestination(
+        icon: Icon(item.icon),
+        selectedIcon: Icon(item.activeIcon),
+        label: Text(item.shortLabel),
+        padding: const EdgeInsets.symmetric(vertical: 2),
+      )).toList(),
+    ),
+  );
+
+  // ── Phone (< 600px) — bottom navigation bar ──────────────────────
+
+  Widget _buildPhoneLayout() => Scaffold(
+    backgroundColor: AppColors.background,
+    body: _pages[_selectedIndex],
+    bottomNavigationBar: Container(
+      decoration: const BoxDecoration(
+        color: AppColors.surface,
+        border: Border(top: BorderSide(color: AppColors.divider)),
+      ),
+      child: SafeArea(
+        child: NavigationBar(
+          backgroundColor: Colors.transparent,
+          elevation: 0,
+          selectedIndex: _selectedIndex,
+          onDestinationSelected: (i) => setState(() => _selectedIndex = i),
+          indicatorColor: AppColors.primary.withOpacity(0.15),
+          labelBehavior: NavigationDestinationLabelBehavior.onlyShowSelected,
+          destinations: _navItems.map((item) => NavigationDestination(
+            icon: Icon(item.icon),
+            selectedIcon: Icon(item.activeIcon, color: AppColors.primary),
+            label: item.shortLabel,
+          )).toList(),
+        ),
+      ),
+    ),
+  );
+}
+
+class _NavItem {
+  final IconData icon;
+  final IconData activeIcon;
+  final String shortLabel;
+  final String longLabel;
+  const _NavItem(this.icon, this.activeIcon, this.shortLabel, this.longLabel);
 }
