@@ -3,13 +3,26 @@ import 'package:intl/intl.dart';
 import '../models/product.dart';
 import '../theme/app_theme.dart';
 
+// ── Helpers ──────────────────────────────────────────────────────────────────
+
 String _categoryEmoji(String categoryName) {
   final n = categoryName.toLowerCase();
-  if (n.contains('deal')) return '🎁';
+  if (n.contains('deal'))                            return '🎁';
   if (n.contains('burger') || n.contains('shawarma')) return '🍔';
   if (n.contains('crispy') || n.contains('grilled')) return '🍗';
   return '🍕';
 }
+
+Color _categoryColor(String categoryName) {
+  final n = categoryName.toLowerCase();
+  if (n.contains('deal'))                            return const Color(0xFF7C3AED);
+  if (n.contains('burger') || n.contains('shawarma')) return const Color(0xFFD97706);
+  if (n.contains('crispy') || n.contains('grilled')) return const Color(0xFF059669);
+  if (n.contains('special'))                         return const Color(0xFFDC2626);
+  return AppColors.primary;
+}
+
+// ── Single Product Card ───────────────────────────────────────────────────────
 
 class ProductCard extends StatelessWidget {
   final Product product;
@@ -25,62 +38,130 @@ class ProductCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final currency = NumberFormat.currency(symbol: 'Rs. ', decimalDigits: 0);
     final inCart = quantity > 0;
+    final color = _categoryColor(product.categoryName ?? '');
+    final emoji = _categoryEmoji(product.categoryName ?? '');
 
     return GestureDetector(
       onTap: onTap,
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 150),
         decoration: BoxDecoration(
-          color: inCart
-              ? AppColors.primary.withOpacity(0.08)
-              : AppColors.surface,
-          borderRadius: BorderRadius.circular(14),
+          color: AppColors.surface,
+          borderRadius: BorderRadius.circular(16),
           border: Border.all(
-            color: inCart ? AppColors.primary : AppColors.cardBorder,
-            width: inCart ? 1.5 : 1,
+            color: inCart ? color : AppColors.cardBorder,
+            width: inCart ? 2 : 1,
           ),
+          boxShadow: inCart
+              ? [BoxShadow(color: color.withOpacity(0.25), blurRadius: 10, offset: const Offset(0, 3))]
+              : [BoxShadow(color: Colors.black.withOpacity(0.15), blurRadius: 4, offset: const Offset(0, 2))],
         ),
-        padding: const EdgeInsets.all(14),
+        clipBehavior: Clip.antiAlias,
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Text(
-              _categoryEmoji(product.categoryName ?? ''),
-              style: const TextStyle(fontSize: 28),
-            ),
-            const SizedBox(height: 8),
+            // ── Gradient header with emoji ──
             Expanded(
-              child: Text(
-                product.name,
-                style: const TextStyle(
-                  color: AppColors.textPrimary,
-                  fontSize: 13,
-                  fontWeight: FontWeight.w600,
-                  height: 1.3,
-                ),
-                maxLines: 3,
-                overflow: TextOverflow.ellipsis,
-              ),
-            ),
-            if (inCart) ...[
-              const SizedBox(height: 6),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+              flex: 5,
+              child: Container(
                 decoration: BoxDecoration(
-                  color: AppColors.primary.withOpacity(0.15),
-                  borderRadius: BorderRadius.circular(6),
-                ),
-                child: Text(
-                  '✓  $quantity in cart',
-                  style: const TextStyle(
-                    color: AppColors.primary,
-                    fontSize: 11,
-                    fontWeight: FontWeight.w700,
+                  gradient: LinearGradient(
+                    colors: [color, color.withOpacity(0.6)],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
                   ),
                 ),
+                child: Stack(
+                  children: [
+                    // Decorative circle
+                    Positioned(
+                      right: -12,
+                      top: -12,
+                      child: Container(
+                        width: 60,
+                        height: 60,
+                        decoration: BoxDecoration(
+                          color: Colors.white.withOpacity(0.08),
+                          shape: BoxShape.circle,
+                        ),
+                      ),
+                    ),
+                    Positioned(
+                      left: -8,
+                      bottom: -8,
+                      child: Container(
+                        width: 40,
+                        height: 40,
+                        decoration: BoxDecoration(
+                          color: Colors.white.withOpacity(0.06),
+                          shape: BoxShape.circle,
+                        ),
+                      ),
+                    ),
+                    // Emoji
+                    Center(
+                      child: Text(emoji, style: const TextStyle(fontSize: 40)),
+                    ),
+                    // Cart badge
+                    if (inCart)
+                      Positioned(
+                        top: 6,
+                        right: 6,
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                          child: Text(
+                            '×$quantity',
+                            style: TextStyle(
+                              color: color,
+                              fontSize: 11,
+                              fontWeight: FontWeight.w800,
+                            ),
+                          ),
+                        ),
+                      ),
+                  ],
+                ),
               ),
-            ],
+            ),
+
+            // ── Info section ──
+            Expanded(
+              flex: 4,
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(10, 8, 10, 8),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      product.name,
+                      style: TextStyle(
+                        color: inCart ? Colors.white : AppColors.textPrimary,
+                        fontSize: 12,
+                        fontWeight: FontWeight.w700,
+                        height: 1.2,
+                      ),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    Text(
+                      currency.format(product.price),
+                      style: TextStyle(
+                        color: color,
+                        fontSize: 13,
+                        fontWeight: FontWeight.w800,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
           ],
         ),
       ),
@@ -88,11 +169,12 @@ class ProductCard extends StatelessWidget {
   }
 }
 
-// ── Grouped product card (one card for all sizes of a pizza) ──────────
+// ── Grouped Product Card (multi-size pizzas) ──────────────────────────────────
+
 class GroupedProductCard extends StatelessWidget {
   final String baseName;
-  final List<Product> variants; // sorted S → M → L → XL
-  final Map<int, int> cartQuantities; // productId → qty
+  final List<Product> variants;
+  final Map<int, int> cartQuantities;
   final void Function(Product) onVariantSelected;
 
   const GroupedProductCard({
@@ -106,79 +188,158 @@ class GroupedProductCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final totalInCart = variants.fold<int>(0, (s, v) => s + (cartQuantities[v.id] ?? 0));
+    final categoryName = variants.first.categoryName ?? '';
+    final color = _categoryColor(categoryName);
+    final emoji = _categoryEmoji(categoryName);
+    final currency = NumberFormat.currency(symbol: 'Rs. ', decimalDigits: 0);
+
+    // Show starting price
+    final minPrice = variants.map((v) => v.price).reduce((a, b) => a < b ? a : b);
 
     return GestureDetector(
       onTap: () => _showSizePicker(context),
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 150),
         decoration: BoxDecoration(
-          color: totalInCart > 0
-              ? AppColors.primary.withOpacity(0.08)
-              : AppColors.surface,
-          borderRadius: BorderRadius.circular(14),
+          color: AppColors.surface,
+          borderRadius: BorderRadius.circular(16),
           border: Border.all(
-            color: totalInCart > 0 ? AppColors.primary : AppColors.cardBorder,
-            width: totalInCart > 0 ? 1.5 : 1,
+            color: totalInCart > 0 ? color : AppColors.cardBorder,
+            width: totalInCart > 0 ? 2 : 1,
           ),
+          boxShadow: totalInCart > 0
+              ? [BoxShadow(color: color.withOpacity(0.25), blurRadius: 10, offset: const Offset(0, 3))]
+              : [BoxShadow(color: Colors.black.withOpacity(0.15), blurRadius: 4, offset: const Offset(0, 2))],
         ),
-        padding: const EdgeInsets.all(14),
+        clipBehavior: Clip.antiAlias,
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            const Text('🍕', style: TextStyle(fontSize: 28)),
-            const SizedBox(height: 8),
+            // ── Gradient header ──
             Expanded(
-              child: Text(
-                baseName,
-                style: const TextStyle(
-                  color: AppColors.textPrimary,
-                  fontSize: 13,
-                  fontWeight: FontWeight.w600,
-                  height: 1.3,
-                ),
-                maxLines: 3,
-                overflow: TextOverflow.ellipsis,
-              ),
-            ),
-            const SizedBox(height: 6),
-            // Size chips
-            Wrap(
-              spacing: 4,
-              runSpacing: 4,
-              children: variants.map((v) {
-                final sizeLabel = _extractSize(v.name);
-                return Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                  decoration: BoxDecoration(
-                    color: AppColors.background,
-                    borderRadius: BorderRadius.circular(4),
-                    border: Border.all(color: AppColors.cardBorder),
-                  ),
-                  child: Text(
-                    sizeLabel,
-                    style: const TextStyle(color: AppColors.textMuted, fontSize: 10),
-                  ),
-                );
-              }).toList(),
-            ),
-            if (totalInCart > 0) ...[
-              const SizedBox(height: 6),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+              flex: 5,
+              child: Container(
                 decoration: BoxDecoration(
-                  color: AppColors.primary.withOpacity(0.15),
-                  borderRadius: BorderRadius.circular(6),
-                ),
-                child: Text(
-                  '✓  $totalInCart in cart',
-                  style: const TextStyle(
-                    color: AppColors.primary,
-                    fontSize: 11,
-                    fontWeight: FontWeight.w700,
+                  gradient: LinearGradient(
+                    colors: [color, color.withOpacity(0.6)],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
                   ),
                 ),
+                child: Stack(
+                  children: [
+                    Positioned(
+                      right: -12, top: -12,
+                      child: Container(
+                        width: 60, height: 60,
+                        decoration: BoxDecoration(
+                          color: Colors.white.withOpacity(0.08),
+                          shape: BoxShape.circle,
+                        ),
+                      ),
+                    ),
+                    Positioned(
+                      left: -8, bottom: -8,
+                      child: Container(
+                        width: 40, height: 40,
+                        decoration: BoxDecoration(
+                          color: Colors.white.withOpacity(0.06),
+                          shape: BoxShape.circle,
+                        ),
+                      ),
+                    ),
+                    Center(child: Text(emoji, style: const TextStyle(fontSize: 40))),
+                    // Size labels row at bottom
+                    Positioned(
+                      bottom: 6, left: 6, right: 6,
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: variants.map((v) {
+                          final label = _extractSize(v.name);
+                          final qty = cartQuantities[v.id] ?? 0;
+                          return Container(
+                            margin: const EdgeInsets.symmetric(horizontal: 2),
+                            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                            decoration: BoxDecoration(
+                              color: qty > 0 ? Colors.white : Colors.white.withOpacity(0.2),
+                              borderRadius: BorderRadius.circular(4),
+                            ),
+                            child: Text(
+                              label,
+                              style: TextStyle(
+                                color: qty > 0 ? color : Colors.white,
+                                fontSize: 9,
+                                fontWeight: FontWeight.w700,
+                              ),
+                            ),
+                          );
+                        }).toList(),
+                      ),
+                    ),
+                    if (totalInCart > 0)
+                      Positioned(
+                        top: 6, right: 6,
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                          child: Text(
+                            '×$totalInCart',
+                            style: TextStyle(
+                              color: color,
+                              fontSize: 11,
+                              fontWeight: FontWeight.w800,
+                            ),
+                          ),
+                        ),
+                      ),
+                  ],
+                ),
               ),
-            ],
+            ),
+
+            // ── Info section ──
+            Expanded(
+              flex: 4,
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(10, 8, 10, 8),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      baseName,
+                      style: TextStyle(
+                        color: totalInCart > 0 ? Colors.white : AppColors.textPrimary,
+                        fontSize: 12,
+                        fontWeight: FontWeight.w700,
+                        height: 1.2,
+                      ),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    Row(
+                      children: [
+                        Text(
+                          'from ',
+                          style: TextStyle(color: AppColors.textMuted, fontSize: 10),
+                        ),
+                        Text(
+                          currency.format(minPrice),
+                          style: TextStyle(
+                            color: color,
+                            fontSize: 13,
+                            fontWeight: FontWeight.w800,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ),
           ],
         ),
       ),
@@ -187,118 +348,127 @@ class GroupedProductCard extends StatelessWidget {
 
   String _extractSize(String name) {
     final match = RegExp(r'\(([^)]+)\)$').firstMatch(name);
-    return match?.group(1) ?? name;
+    if (match != null) return match.group(1)!;
+    // Return first letter if long label
+    return name.length <= 3 ? name : name[0];
   }
 
   void _showSizePicker(BuildContext context) {
     final currency = NumberFormat.currency(symbol: 'Rs. ', decimalDigits: 0);
+    final categoryName = variants.first.categoryName ?? '';
+    final color = _categoryColor(categoryName);
+    final emoji = _categoryEmoji(categoryName);
+
     showDialog(
       context: context,
       builder: (ctx) => Dialog(
         backgroundColor: AppColors.surface,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        child: Padding(
-          padding: const EdgeInsets.all(24),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+        clipBehavior: Clip.antiAlias,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // Gradient header
+            Container(
+              height: 110,
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [color, color.withOpacity(0.6)],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                ),
+              ),
+              child: Stack(
                 children: [
-                  const Text('🍕', style: TextStyle(fontSize: 28)),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          baseName,
-                          style: const TextStyle(
-                            color: AppColors.textPrimary,
-                            fontWeight: FontWeight.w800,
-                            fontSize: 16,
-                          ),
+                  Positioned(right: -20, top: -20,
+                    child: Container(width: 100, height: 100,
+                      decoration: BoxDecoration(color: Colors.white.withOpacity(0.07), shape: BoxShape.circle))),
+                  Center(child: Text(emoji, style: const TextStyle(fontSize: 52))),
+                  Positioned(
+                    top: 12, right: 12,
+                    child: GestureDetector(
+                      onTap: () => Navigator.pop(ctx),
+                      child: Container(
+                        padding: const EdgeInsets.all(6),
+                        decoration: BoxDecoration(
+                          color: Colors.black.withOpacity(0.2),
+                          shape: BoxShape.circle,
                         ),
-                        const Text(
-                          'Choose a size',
-                          style: TextStyle(color: AppColors.textMuted, fontSize: 12),
-                        ),
-                      ],
+                        child: const Icon(Icons.close_rounded, color: Colors.white, size: 18),
+                      ),
                     ),
-                  ),
-                  IconButton(
-                    onPressed: () => Navigator.pop(ctx),
-                    icon: const Icon(Icons.close_rounded, color: AppColors.textMuted),
                   ),
                 ],
               ),
-              const SizedBox(height: 20),
-              GridView.builder(
-                shrinkWrap: true,
-                physics: const NeverScrollableScrollPhysics(),
-                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: 2,
-                  mainAxisSpacing: 12,
-                  crossAxisSpacing: 12,
-                  childAspectRatio: 1.8,
-                ),
-                itemCount: variants.length,
-                itemBuilder: (_, i) {
-                  final v = variants[i];
-                  final sizeLabel = _extractSize(v.name);
-                  final qty = cartQuantities[v.id] ?? 0;
-                  return GestureDetector(
-                    onTap: () {
-                      onVariantSelected(v);
-                      Navigator.pop(ctx);
-                    },
-                    child: Container(
-                      decoration: BoxDecoration(
-                        color: qty > 0
-                            ? AppColors.primary.withOpacity(0.1)
-                            : AppColors.background,
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(
-                          color: qty > 0 ? AppColors.primary : AppColors.cardBorder,
-                          width: qty > 0 ? 1.5 : 1,
+            ),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(20, 16, 20, 20),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(baseName,
+                    style: const TextStyle(color: AppColors.textPrimary, fontWeight: FontWeight.w800, fontSize: 18)),
+                  const SizedBox(height: 4),
+                  Text('Tap a size to add to cart',
+                    style: const TextStyle(color: AppColors.textMuted, fontSize: 12)),
+                  const SizedBox(height: 16),
+                  ...variants.map((v) {
+                    final sizeLabel = _extractSize(v.name);
+                    final qty = cartQuantities[v.id] ?? 0;
+                    return GestureDetector(
+                      onTap: () {
+                        onVariantSelected(v);
+                        Navigator.pop(ctx);
+                      },
+                      child: Container(
+                        margin: const EdgeInsets.only(bottom: 10),
+                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                        decoration: BoxDecoration(
+                          color: qty > 0 ? color.withOpacity(0.1) : AppColors.background,
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(
+                            color: qty > 0 ? color : AppColors.cardBorder,
+                            width: qty > 0 ? 2 : 1,
+                          ),
                         ),
-                      ),
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Text(
-                            sizeLabel,
-                            style: const TextStyle(
-                              color: AppColors.textPrimary,
-                              fontWeight: FontWeight.w800,
-                              fontSize: 16,
-                            ),
-                          ),
-                          const SizedBox(height: 4),
-                          Text(
-                            currency.format(v.price),
-                            style: const TextStyle(
-                              color: AppColors.primary,
-                              fontSize: 13,
-                              fontWeight: FontWeight.w700,
-                            ),
-                          ),
-                          if (qty > 0)
-                            Text(
-                              '$qty in cart',
-                              style: const TextStyle(
-                                color: AppColors.primary,
-                                fontSize: 10,
+                        child: Row(
+                          children: [
+                            Container(
+                              width: 36, height: 36,
+                              decoration: BoxDecoration(
+                                color: color.withOpacity(0.15),
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                              child: Center(
+                                child: Text(sizeLabel,
+                                  style: TextStyle(color: color, fontWeight: FontWeight.w800, fontSize: 13)),
                               ),
                             ),
-                        ],
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: Text(v.name,
+                                style: const TextStyle(color: AppColors.textPrimary, fontSize: 14, fontWeight: FontWeight.w500),
+                                overflow: TextOverflow.ellipsis),
+                            ),
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.end,
+                              children: [
+                                Text(currency.format(v.price),
+                                  style: TextStyle(color: color, fontWeight: FontWeight.w800, fontSize: 15)),
+                                if (qty > 0)
+                                  Text('$qty in cart',
+                                    style: TextStyle(color: color, fontSize: 10)),
+                              ],
+                            ),
+                          ],
+                        ),
                       ),
-                    ),
-                  );
-                },
+                    );
+                  }),
+                ],
               ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );
