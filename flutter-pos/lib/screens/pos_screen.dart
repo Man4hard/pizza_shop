@@ -10,7 +10,6 @@ import '../theme/app_theme.dart';
 import '../theme/breakpoints.dart';
 import '../widgets/product_card.dart';
 import '../widgets/cart_item_tile.dart';
-import '../widgets/payment_dialog.dart';
 import '../widgets/bill_dialog.dart';
 
 class PosScreen extends StatefulWidget {
@@ -135,16 +134,6 @@ class _PosScreenState extends State<PosScreen> {
       final info = await _showCustomerInfoDialog();
       if (info == null) return;
 
-      final payment = await showDialog<Map<String, dynamic>>(
-        context: context,
-        builder: (_) => PaymentDialog(
-          subtotal: cart.subtotal,
-          tax: cart.tax,
-          total: cart.total,
-        ),
-      );
-      if (payment == null) return;
-
       final order = await DatabaseService.createOrder(
         items: cart.toOrderItems(),
         customerName: info['customerName'],
@@ -154,8 +143,8 @@ class _PosScreenState extends State<PosScreen> {
 
       final completed = await DatabaseService.completeOrder(
         order.id,
-        payment['method'],
-        discount: payment['discount'] ?? 0,
+        'cash',
+        discount: 0,
       );
 
       cart.clear();
