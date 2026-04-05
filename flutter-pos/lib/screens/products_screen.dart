@@ -12,9 +12,12 @@ class ProductsScreen extends StatefulWidget {
   State<ProductsScreen> createState() => _ProductsScreenState();
 }
 
-class _ProductsScreenState extends State<ProductsScreen> {
+class _ProductsScreenState extends State<ProductsScreen>
+    with SingleTickerProviderStateMixin {
+  late final TabController _tabs;
   List<Category> _categories = [];
   List<Product> _products = [];
+  Map<int, int> _categoryProductCounts = {};
   int? _filterCategoryId;
   bool _loading = true;
   String _search = '';
@@ -24,11 +27,16 @@ class _ProductsScreenState extends State<ProductsScreen> {
   @override
   void initState() {
     super.initState();
+    _tabs = TabController(length: 2, vsync: this);
+    _tabs.addListener(() {
+      if (!_tabs.indexIsChanging) setState(() {});
+    });
     _loadData();
   }
 
   @override
   void dispose() {
+    _tabs.dispose();
     _searchController.dispose();
     super.dispose();
   }
@@ -40,9 +48,18 @@ class _ProductsScreenState extends State<ProductsScreen> {
         DatabaseService.getCategories(),
         DatabaseService.getProducts(),
       ]);
+      final cats = results[0] as List<Category>;
+      final prods = results[1] as List<Product>;
+
+      final counts = <int, int>{};
+      for (final c in cats) {
+        counts[c.id] = prods.where((p) => p.categoryId == c.id).length;
+      }
+
       setState(() {
-        _categories = results[0] as List<Category>;
-        _products = results[1] as List<Product>;
+        _categories = cats;
+        _products = prods;
+        _categoryProductCounts = counts;
         _loading = false;
       });
     } catch (e) {
@@ -287,10 +304,14 @@ class _ProductsScreenState extends State<ProductsScreen> {
                               }
                             },
                             style: ElevatedButton.styleFrom(
+                              backgroundColor: AppColors.primary,
                               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                               padding: const EdgeInsets.symmetric(vertical: 14),
                             ),
-                            child: Text(existing == null ? 'Add Product' : 'Save Changes'),
+                            child: Text(
+                              existing == null ? 'Add Product' : 'Save Changes',
+                              style: const TextStyle(fontWeight: FontWeight.w600),
+                            ),
                           ),
                         ),
                       ],
@@ -305,46 +326,333 @@ class _ProductsScreenState extends State<ProductsScreen> {
     );
   }
 
-  // ── Build ─────────────────────────────────────────────────────────
+  // ── Add / Edit category dialog ────────────────────────────────────
+  static const _emojiOptions = [
+    '🍕', '🍔', '🥩', '🌯', '🍟', '🥪', '🍗',
+    '🥗', '🥘', '🍜', '🌮', '🫔', '🧆', '🌶️',
+    '🎂', '🍰', '🧁', '☕', '🥤', '🍺', '🧃',
+    '🔥', '⭐', '🎉', '🍽️', '🛒', '🥡', '🍱',
+  ];
 
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppColors.background,
-      body: Column(
-        children: [
-          _buildTopBar(),
-          _buildFilters(),
-          Expanded(child: _loading ? const Center(child: CircularProgressIndicator(color: AppColors.primary)) : _buildList()),
-        ],
-      ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: () => _showProductDialog(),
-        backgroundColor: AppColors.primary,
-        icon: const Icon(Icons.add_rounded, color: Colors.white),
-        label: const Text('Add Product', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600)),
+  Future<void> _showCategoryDialog({Category? existing}) async {
+    final nameCtrl = TextEditingController(text: existing?.name ?? '');
+    String? selectedEmoji = existing?.icon;
+    final formKey = GlobalKey<FormState>();
+
+    await showDialog(
+      context: context,
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, setS) => Dialog(
+          backgroundColor: AppColors.surface,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 420),
+            child: Padding(
+              padding: const EdgeInsets.all(28),
+              child: Form(
+                key: formKey,
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Header
+                    Row(
+                      children: [
+                        Icon(
+                          existing == null ? Icons.add_circle_rounded : Icons.edit_rounded,
+                          color: AppColors.primary,
+                        ),
+                        const SizedBox(width: 10),
+                        Text(
+                          existing == null ? 'Add Category' : 'Edit Category',
+                          style: const TextStyle(
+                            color: AppColors.textPrimary,
+                            fontSize: 18,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                        const Spacer(),
+                        IconButton(
+                          onPressed: () => Navigator.pop(ctx),
+                          icon: const Icon(Icons.close_rounded, color: AppColors.textMuted),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 20),
+
+                    // Preview circle
+                    Center(
+                      child: Container(
+                        width: 72,
+                        height: 72,
+                        decoration: BoxDecoration(
+                          color: AppColors.primary.withOpacity(0.15),
+                          shape: BoxShape.circle,
+                        ),
+                        child: Center(
+                          child: selectedEmoji != null
+                              ? Text(selectedEmoji!, style: const TextStyle(fontSize: 36))
+                              : const Icon(Icons.category_rounded, color: AppColors.primary, size: 36),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 20),
+
+                    // Name
+                    TextFormField(
+                      controller: nameCtrl,
+                      style: const TextStyle(color: AppColors.textPrimary),
+                      decoration: const InputDecoration(
+                        labelText: 'Category Name *',
+                        hintText: 'e.g. Sandwiches, Drinks...',
+                      ),
+                      validator: (v) => v == null || v.trim().isEmpty ? 'Name is required' : null,
+                    ),
+                    const SizedBox(height: 20),
+
+                    // Emoji picker
+                    const Text(
+                      'Choose an Icon (optional)',
+                      style: TextStyle(color: AppColors.textMuted, fontSize: 13),
+                    ),
+                    const SizedBox(height: 10),
+                    SizedBox(
+                      height: 48,
+                      child: ListView.separated(
+                        scrollDirection: Axis.horizontal,
+                        itemCount: _emojiOptions.length + 1,
+                        separatorBuilder: (_, __) => const SizedBox(width: 6),
+                        itemBuilder: (_, i) {
+                          if (i == 0) {
+                            final isSelected = selectedEmoji == null;
+                            return GestureDetector(
+                              onTap: () => setS(() => selectedEmoji = null),
+                              child: Container(
+                                width: 44,
+                                height: 44,
+                                decoration: BoxDecoration(
+                                  color: isSelected ? AppColors.primary.withOpacity(0.2) : AppColors.background,
+                                  borderRadius: BorderRadius.circular(10),
+                                  border: Border.all(
+                                    color: isSelected ? AppColors.primary : AppColors.cardBorder,
+                                    width: isSelected ? 2 : 1,
+                                  ),
+                                ),
+                                child: const Icon(Icons.block_rounded, size: 20, color: AppColors.textMuted),
+                              ),
+                            );
+                          }
+                          final emoji = _emojiOptions[i - 1];
+                          final isSelected = selectedEmoji == emoji;
+                          return GestureDetector(
+                            onTap: () => setS(() => selectedEmoji = emoji),
+                            child: Container(
+                              width: 44,
+                              height: 44,
+                              decoration: BoxDecoration(
+                                color: isSelected ? AppColors.primary.withOpacity(0.2) : AppColors.background,
+                                borderRadius: BorderRadius.circular(10),
+                                border: Border.all(
+                                  color: isSelected ? AppColors.primary : AppColors.cardBorder,
+                                  width: isSelected ? 2 : 1,
+                                ),
+                              ),
+                              child: Center(
+                                child: Text(emoji, style: const TextStyle(fontSize: 22)),
+                              ),
+                            ),
+                          );
+                        },
+                      ),
+                    ),
+                    const SizedBox(height: 24),
+
+                    // Action buttons
+                    Row(
+                      children: [
+                        Expanded(
+                          child: OutlinedButton(
+                            onPressed: () => Navigator.pop(ctx),
+                            style: OutlinedButton.styleFrom(
+                              foregroundColor: AppColors.textSecondary,
+                              side: const BorderSide(color: AppColors.cardBorder),
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                              padding: const EdgeInsets.symmetric(vertical: 14),
+                            ),
+                            child: const Text('Cancel'),
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: ElevatedButton(
+                            onPressed: () async {
+                              if (!formKey.currentState!.validate()) return;
+                              Navigator.pop(ctx);
+                              try {
+                                if (existing == null) {
+                                  await DatabaseService.createCategory(
+                                    nameCtrl.text.trim(),
+                                    icon: selectedEmoji,
+                                  );
+                                  _showSuccess('Category added!');
+                                } else {
+                                  await DatabaseService.updateCategory(
+                                    existing.id,
+                                    nameCtrl.text.trim(),
+                                    icon: selectedEmoji,
+                                  );
+                                  _showSuccess('Category updated!');
+                                }
+                                await _loadData();
+                              } catch (e) {
+                                _showError('Save failed: $e');
+                              }
+                            },
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: AppColors.primary,
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                              padding: const EdgeInsets.symmetric(vertical: 14),
+                            ),
+                            child: Text(
+                              existing == null ? 'Add Category' : 'Save Changes',
+                              style: const TextStyle(fontWeight: FontWeight.w600),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ),
       ),
     );
   }
 
-  Widget _buildTopBar() => Container(
-    padding: const EdgeInsets.fromLTRB(24, 24, 24, 12),
-    color: AppColors.surface,
-    child: Row(
-      children: [
-        const Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text('Products', style: TextStyle(color: AppColors.textPrimary, fontSize: 22, fontWeight: FontWeight.w800)),
-            Text('Manage your menu items', style: TextStyle(color: AppColors.textMuted, fontSize: 13)),
-          ],
+  // ── Delete category ───────────────────────────────────────────────
+  Future<void> _deleteCategory(Category cat) async {
+    final count = _categoryProductCounts[cat.id] ?? 0;
+    if (count > 0) {
+      _showError('Cannot delete "${cat.name}" — it has $count product${count == 1 ? "" : "s"}. Move or delete them first.');
+      return;
+    }
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: AppColors.surface,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: const Text('Delete Category', style: TextStyle(color: AppColors.textPrimary)),
+        content: Text(
+          'Delete "${cat.name}"? This cannot be undone.',
+          style: const TextStyle(color: AppColors.textSecondary),
         ),
-        const Spacer(),
-        // Stats
-        _statChip(Icons.check_circle_outline_rounded, '${_products.where((p) => p.available).length} active', Colors.green),
-        const SizedBox(width: 10),
-        _statChip(Icons.hide_source_rounded, '${_products.where((p) => !p.available).length} hidden', AppColors.textMuted),
-      ],
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Cancel')),
+          ElevatedButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            style: ElevatedButton.styleFrom(backgroundColor: AppColors.error),
+            child: const Text('Delete'),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true) return;
+    try {
+      await DatabaseService.deleteCategory(cat.id);
+      await _loadData();
+      _showSuccess('"${cat.name}" deleted');
+    } catch (e) {
+      _showError('Delete failed: $e');
+    }
+  }
+
+  // ── Build ─────────────────────────────────────────────────────────
+
+  @override
+  Widget build(BuildContext context) {
+    final isProductsTab = _tabs.index == 0;
+    return Scaffold(
+      backgroundColor: AppColors.background,
+      body: Column(
+        children: [
+          _buildTopBar(isProductsTab),
+          // Tab bar
+          Container(
+            color: AppColors.surface,
+            child: TabBar(
+              controller: _tabs,
+              indicatorColor: AppColors.primary,
+              indicatorWeight: 3,
+              labelColor: AppColors.primary,
+              unselectedLabelColor: AppColors.textMuted,
+              labelStyle: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14),
+              tabs: const [
+                Tab(text: 'Products'),
+                Tab(text: 'Categories'),
+              ],
+            ),
+          ),
+          Expanded(
+            child: _loading
+                ? const Center(child: CircularProgressIndicator(color: AppColors.primary))
+                : TabBarView(
+                    controller: _tabs,
+                    children: [
+                      _buildProductsTab(),
+                      _buildCategoriesTab(),
+                    ],
+                  ),
+          ),
+        ],
+      ),
+      floatingActionButton: isProductsTab
+          ? FloatingActionButton.extended(
+              onPressed: () => _showProductDialog(),
+              backgroundColor: AppColors.primary,
+              icon: const Icon(Icons.add_rounded, color: Colors.white),
+              label: const Text('Add Product', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600)),
+            )
+          : FloatingActionButton.extended(
+              onPressed: () => _showCategoryDialog(),
+              backgroundColor: AppColors.primary,
+              icon: const Icon(Icons.add_rounded, color: Colors.white),
+              label: const Text('Add Category', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600)),
+            ),
+    );
+  }
+
+  Widget _buildTopBar(bool isProductsTab) => SafeArea(
+    bottom: false,
+    child: Container(
+      padding: const EdgeInsets.fromLTRB(24, 16, 24, 12),
+      color: AppColors.surface,
+      child: Row(
+        children: [
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                isProductsTab ? 'Products' : 'Categories',
+                style: const TextStyle(color: AppColors.textPrimary, fontSize: 22, fontWeight: FontWeight.w800),
+              ),
+              Text(
+                isProductsTab ? 'Manage your menu items' : 'Manage product categories',
+                style: const TextStyle(color: AppColors.textMuted, fontSize: 13),
+              ),
+            ],
+          ),
+          const Spacer(),
+          if (isProductsTab) ...[
+            _statChip(Icons.check_circle_outline_rounded, '${_products.where((p) => p.available).length} active', Colors.green),
+            const SizedBox(width: 10),
+            _statChip(Icons.hide_source_rounded, '${_products.where((p) => !p.available).length} hidden', AppColors.textMuted),
+          ] else ...[
+            _statChip(Icons.category_rounded, '${_categories.length} categories', AppColors.primary),
+          ],
+        ],
+      ),
     ),
   );
 
@@ -364,11 +672,19 @@ class _ProductsScreenState extends State<ProductsScreen> {
     ),
   );
 
+  // ── Products tab ──────────────────────────────────────────────────
+
+  Widget _buildProductsTab() => Column(
+    children: [
+      _buildFilters(),
+      Expanded(child: _buildProductList()),
+    ],
+  );
+
   Widget _buildFilters() => Padding(
     padding: const EdgeInsets.fromLTRB(20, 12, 20, 4),
     child: Row(
       children: [
-        // Search
         Expanded(
           child: TextField(
             controller: _searchController,
@@ -389,7 +705,6 @@ class _ProductsScreenState extends State<ProductsScreen> {
           ),
         ),
         const SizedBox(width: 12),
-        // Category filter
         DropdownButton<int?>(
           value: _filterCategoryId,
           dropdownColor: AppColors.surface,
@@ -409,7 +724,7 @@ class _ProductsScreenState extends State<ProductsScreen> {
     ),
   );
 
-  Widget _buildList() {
+  Widget _buildProductList() {
     final items = _filtered;
     if (items.isEmpty) {
       return const Center(
@@ -580,4 +895,129 @@ class _ProductsScreenState extends State<ProductsScreen> {
           ),
         ),
       );
+
+  // ── Categories tab ────────────────────────────────────────────────
+
+  Widget _buildCategoriesTab() {
+    if (_categories.isEmpty) {
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Icon(Icons.category_outlined, size: 64, color: AppColors.textMuted),
+            const SizedBox(height: 16),
+            const Text('No categories yet', style: TextStyle(color: AppColors.textMuted, fontSize: 16)),
+            const SizedBox(height: 8),
+            const Text('Tap "+ Add Category" to create one', style: TextStyle(color: AppColors.textMuted, fontSize: 13)),
+            const SizedBox(height: 24),
+            ElevatedButton.icon(
+              onPressed: () => _showCategoryDialog(),
+              backgroundColor: AppColors.primary,
+              icon: const Icon(Icons.add_rounded, color: Colors.white),
+              label: const Text('Add Category', style: TextStyle(color: Colors.white)),
+            ),
+          ],
+        ),
+      );
+    }
+
+    return RefreshIndicator(
+      color: AppColors.primary,
+      onRefresh: _loadData,
+      child: LayoutBuilder(
+        builder: (_, constraints) {
+          final isWide = constraints.maxWidth >= 700;
+          if (isWide) {
+            return GridView.builder(
+              padding: const EdgeInsets.fromLTRB(20, 16, 20, 100),
+              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: 3,
+                crossAxisSpacing: 14,
+                mainAxisSpacing: 14,
+                childAspectRatio: 1.7,
+              ),
+              itemCount: _categories.length,
+              itemBuilder: (_, i) => _buildCategoryCard(_categories[i]),
+            );
+          }
+          return ListView.separated(
+            padding: const EdgeInsets.fromLTRB(20, 16, 20, 100),
+            itemCount: _categories.length,
+            separatorBuilder: (_, __) => const SizedBox(height: 12),
+            itemBuilder: (_, i) => _buildCategoryCard(_categories[i]),
+          );
+        },
+      ),
+    );
+  }
+
+  Widget _buildCategoryCard(Category cat) {
+    final productCount = _categoryProductCounts[cat.id] ?? 0;
+    final hasIcon = cat.icon != null && cat.icon!.isNotEmpty;
+
+    return Container(
+      decoration: BoxDecoration(
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AppColors.cardBorder),
+      ),
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                width: 48,
+                height: 48,
+                decoration: BoxDecoration(
+                  color: AppColors.primary.withOpacity(0.12),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Center(
+                  child: hasIcon
+                      ? Text(cat.icon!, style: const TextStyle(fontSize: 26))
+                      : const Icon(Icons.category_rounded, color: AppColors.primary, size: 26),
+                ),
+              ),
+              const Spacer(),
+              _actionBtn(
+                icon: Icons.edit_rounded,
+                color: AppColors.textSecondary,
+                tooltip: 'Edit category',
+                onTap: () => _showCategoryDialog(existing: cat),
+              ),
+              _actionBtn(
+                icon: Icons.delete_outline_rounded,
+                color: productCount > 0 ? AppColors.textMuted : AppColors.error,
+                tooltip: productCount > 0 ? 'Has $productCount product${productCount == 1 ? "" : "s"} — cannot delete' : 'Delete category',
+                onTap: () => _deleteCategory(cat),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Text(
+            cat.name,
+            style: const TextStyle(
+              color: AppColors.textPrimary,
+              fontWeight: FontWeight.w700,
+              fontSize: 15,
+            ),
+            overflow: TextOverflow.ellipsis,
+          ),
+          const SizedBox(height: 4),
+          Row(
+            children: [
+              const Icon(Icons.inventory_2_outlined, size: 13, color: AppColors.textMuted),
+              const SizedBox(width: 4),
+              Text(
+                '$productCount product${productCount == 1 ? "" : "s"}',
+                style: const TextStyle(color: AppColors.textMuted, fontSize: 12),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
 }
