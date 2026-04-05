@@ -246,26 +246,47 @@ class _OrdersScreenState extends State<OrdersScreen>
               ),
             ],
           ),
-          const SizedBox(height: 10),
-          Row(
+          const SizedBox(height: 8),
+          Wrap(
+            spacing: 12,
+            runSpacing: 4,
+            crossAxisAlignment: WrapCrossAlignment.center,
             children: [
-              if (order.customerName != null) ...[
-                const Icon(Icons.person_outline, size: 14, color: AppColors.textMuted),
-                const SizedBox(width: 4),
-                Text(order.customerName!, style: const TextStyle(color: AppColors.textSecondary, fontSize: 13)),
-                const SizedBox(width: 12),
-              ],
-              if (order.tableNumber != null) ...[
-                const Icon(Icons.table_restaurant_outlined, size: 14, color: AppColors.textMuted),
-                const SizedBox(width: 4),
-                Text('Table ${order.tableNumber}', style: const TextStyle(color: AppColors.textSecondary, fontSize: 13)),
-                const SizedBox(width: 12),
-              ],
-              const Icon(Icons.access_time_rounded, size: 14, color: AppColors.textMuted),
-              const SizedBox(width: 4),
-              Text(
-                _timeFormat.format(order.createdAt.toLocal()),
-                style: const TextStyle(color: AppColors.textSecondary, fontSize: 13),
+              if (order.customerName != null)
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Icon(Icons.person_outline, size: 13, color: AppColors.textMuted),
+                    const SizedBox(width: 4),
+                    ConstrainedBox(
+                      constraints: const BoxConstraints(maxWidth: 140),
+                      child: Text(
+                        order.customerName!,
+                        style: const TextStyle(color: AppColors.textSecondary, fontSize: 12),
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                  ],
+                ),
+              if (order.tableNumber != null)
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Icon(Icons.table_restaurant_outlined, size: 13, color: AppColors.textMuted),
+                    const SizedBox(width: 4),
+                    Text('Table ${order.tableNumber}', style: const TextStyle(color: AppColors.textSecondary, fontSize: 12)),
+                  ],
+                ),
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Icon(Icons.access_time_rounded, size: 13, color: AppColors.textMuted),
+                  const SizedBox(width: 4),
+                  Text(
+                    _timeFormat.format(order.createdAt.toLocal()),
+                    style: const TextStyle(color: AppColors.textSecondary, fontSize: 12),
+                  ),
+                ],
               ),
             ],
           ),
