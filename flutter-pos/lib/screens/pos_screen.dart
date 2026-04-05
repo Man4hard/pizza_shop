@@ -422,10 +422,10 @@ class _PosScreenState extends State<PosScreen> {
   );
 
   Widget _buildCategoryTabs() => SizedBox(
-    height: 56,
+    height: 40,
     child: ListView.builder(
       scrollDirection: Axis.horizontal,
-      padding: const EdgeInsets.symmetric(horizontal: 20),
+      padding: const EdgeInsets.symmetric(horizontal: 16),
       itemCount: _categories.length + 1,
       itemBuilder: (_, i) {
         final isAll = i == 0;
@@ -435,25 +435,26 @@ class _PosScreenState extends State<PosScreen> {
           onTap: () => _loadProducts(isAll ? null : _categories[i - 1].id),
           child: AnimatedContainer(
             duration: const Duration(milliseconds: 200),
-            margin: const EdgeInsets.only(right: 12),
-            padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 12),
+            margin: const EdgeInsets.only(right: 8),
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 0),
             decoration: BoxDecoration(
               color: selected ? AppColors.primary : AppColors.surface,
-              borderRadius: BorderRadius.circular(24),
+              borderRadius: BorderRadius.circular(20),
               border: Border.all(
                 color: selected ? AppColors.primary : AppColors.cardBorder,
-                width: selected ? 2 : 1,
               ),
               boxShadow: selected
-                  ? [BoxShadow(color: AppColors.primary.withOpacity(0.35), blurRadius: 12, offset: const Offset(0, 4))]
+                  ? [BoxShadow(color: AppColors.primary.withOpacity(0.3), blurRadius: 8, offset: const Offset(0, 2))]
                   : null,
             ),
-            child: Text(
-              label,
-              style: TextStyle(
-                color: selected ? Colors.white : AppColors.textSecondary,
-                fontWeight: FontWeight.w700,
-                fontSize: 14,
+            child: Center(
+              child: Text(
+                label,
+                style: TextStyle(
+                  color: selected ? Colors.white : AppColors.textSecondary,
+                  fontWeight: FontWeight.w600,
+                  fontSize: 12,
+                ),
               ),
             ),
           ),
@@ -486,7 +487,7 @@ class _PosScreenState extends State<PosScreen> {
           crossAxisCount: cols,
           mainAxisSpacing: 16,
           crossAxisSpacing: 16,
-          childAspectRatio: cols == 3 ? 1.1 : 1.2,
+          childAspectRatio: cols == 3 ? 0.82 : 0.85,
         ),
         itemCount: groups.length,
         itemBuilder: (_, i) {
