@@ -130,45 +130,48 @@ class _SalesScreenState extends State<SalesScreen> {
   Widget _buildHeader() => SafeArea(
     bottom: false,
     child: Container(
-    color: AppColors.surface,
-    padding: const EdgeInsets.fromLTRB(20, 12, 20, 16),
-    child: Row(
-      children: [
-        const Text(
-          'Sales History',
-          style: TextStyle(
-            color: AppColors.textPrimary,
-            fontSize: 24,
-            fontWeight: FontWeight.w700,
+      color: AppColors.surface,
+      padding: const EdgeInsets.fromLTRB(16, 12, 8, 16),
+      child: Row(
+        children: [
+          const Text(
+            'Sales History',
+            style: TextStyle(
+              color: AppColors.textPrimary,
+              fontSize: 20,
+              fontWeight: FontWeight.w700,
+            ),
           ),
-        ),
-        const Spacer(),
-        OutlinedButton.icon(
-          onPressed: _pickDateRange,
-          icon: const Icon(Icons.calendar_today_rounded, size: 16, color: AppColors.textSecondary),
-          label: Text(
-            _dateRange != null
-                ? '${_dateFormat.format(_dateRange!.start)} – ${_dateFormat.format(_dateRange!.end)}'
-                : 'All Time',
-            style: const TextStyle(color: AppColors.textSecondary, fontSize: 13),
+          const Spacer(),
+          Flexible(
+            child: OutlinedButton.icon(
+              onPressed: _pickDateRange,
+              icon: const Icon(Icons.calendar_today_rounded, size: 15, color: AppColors.textSecondary),
+              label: Text(
+                _dateRange != null
+                    ? '${_dateFormat.format(_dateRange!.start)} – ${_dateFormat.format(_dateRange!.end)}'
+                    : 'All Time',
+                style: const TextStyle(color: AppColors.textSecondary, fontSize: 12),
+                overflow: TextOverflow.ellipsis,
+              ),
+              style: OutlinedButton.styleFrom(
+                side: const BorderSide(color: AppColors.cardBorder),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+              ),
+            ),
           ),
-          style: OutlinedButton.styleFrom(
-            side: const BorderSide(color: AppColors.cardBorder),
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-          ),
-        ),
-        const SizedBox(width: 8),
-        if (_dateRange != null)
-          IconButton(
-            onPressed: () {
-              setState(() => _dateRange = null);
-              _load();
-            },
-            icon: const Icon(Icons.clear_rounded, color: AppColors.textMuted, size: 18),
-          ),
-      ],
+          if (_dateRange != null)
+            IconButton(
+              onPressed: () {
+                setState(() => _dateRange = null);
+                _load();
+              },
+              icon: const Icon(Icons.clear_rounded, color: AppColors.textMuted, size: 18),
+            ),
+        ],
+      ),
     ),
-  ),
   );
 
   Widget _buildSummary() {
@@ -303,25 +306,14 @@ class _SalesScreenState extends State<SalesScreen> {
                   ),
                 ),
                 const SizedBox(height: 3),
-                Row(
-                  children: [
-                    Text(
-                      _dateFormat.format(sale.soldAt.toLocal()),
-                      style: const TextStyle(color: AppColors.textMuted, fontSize: 12),
-                    ),
-                    const Text(' · ', style: TextStyle(color: AppColors.textMuted)),
-                    Text(
-                      _timeFormat.format(sale.soldAt.toLocal()),
-                      style: const TextStyle(color: AppColors.textMuted, fontSize: 12),
-                    ),
-                    if (sale.tableNumber != null) ...[
-                      const Text(' · ', style: TextStyle(color: AppColors.textMuted)),
-                      Text(
-                        'Table ${sale.tableNumber}',
-                        style: const TextStyle(color: AppColors.textMuted, fontSize: 12),
-                      ),
-                    ],
-                  ],
+                Text(
+                  [
+                    _dateFormat.format(sale.soldAt.toLocal()),
+                    _timeFormat.format(sale.soldAt.toLocal()),
+                    if (sale.tableNumber != null) 'Table ${sale.tableNumber}',
+                  ].join(' · '),
+                  style: const TextStyle(color: AppColors.textMuted, fontSize: 12),
+                  overflow: TextOverflow.ellipsis,
                 ),
               ],
             ),
