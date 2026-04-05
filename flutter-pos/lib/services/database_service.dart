@@ -238,6 +238,25 @@ class DatabaseService {
     return Category(id: id, name: name, icon: icon, createdAt: DateTime.now());
   }
 
+  static Future<void> updateCategory(int id, String name, {String? icon}) async {
+    final database = await db;
+    await database.update(
+      'categories',
+      {'name': name, 'icon': icon},
+      where: 'id = ?',
+      whereArgs: [id],
+    );
+  }
+
+  static Future<int> getProductCountForCategory(int categoryId) async {
+    final database = await db;
+    final result = await database.rawQuery(
+      'SELECT COUNT(*) as count FROM products WHERE category_id = ?',
+      [categoryId],
+    );
+    return result.first['count'] as int;
+  }
+
   static Future<void> deleteCategory(int id) async {
     final database = await db;
     await database.delete('categories', where: 'id = ?', whereArgs: [id]);
