@@ -57,13 +57,15 @@ class BillDialog extends StatelessWidget {
               const SizedBox(height: 20),
               _dottedDivider(),
               const SizedBox(height: 12),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
                     'Receipt #${order.orderNumber}',
                     style: const TextStyle(color: Colors.black87, fontWeight: FontWeight.w700, fontSize: 14),
+                    overflow: TextOverflow.ellipsis,
                   ),
+                  const SizedBox(height: 2),
                   Text(
                     dateFormat.format(order.completedAt?.toLocal() ?? order.createdAt.toLocal()),
                     style: const TextStyle(color: Colors.black54, fontSize: 11),
