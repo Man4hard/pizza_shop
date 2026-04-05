@@ -631,26 +631,31 @@ class _ProductsScreenState extends State<ProductsScreen>
       color: AppColors.surface,
       child: Row(
         children: [
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                isProductsTab ? 'Products' : 'Categories',
-                style: const TextStyle(color: AppColors.textPrimary, fontSize: 22, fontWeight: FontWeight.w800),
-              ),
-              Text(
-                isProductsTab ? 'Manage your menu items' : 'Manage product categories',
-                style: const TextStyle(color: AppColors.textMuted, fontSize: 13),
-              ),
-            ],
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  isProductsTab ? 'Products' : 'Categories',
+                  style: const TextStyle(color: AppColors.textPrimary, fontSize: 20, fontWeight: FontWeight.w800),
+                  overflow: TextOverflow.ellipsis,
+                ),
+                Text(
+                  isProductsTab ? 'Manage your menu items' : 'Manage product categories',
+                  style: const TextStyle(color: AppColors.textMuted, fontSize: 12),
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ],
+            ),
           ),
-          const Spacer(),
+          const SizedBox(width: 8),
           if (isProductsTab) ...[
             _statChip(Icons.check_circle_outline_rounded, '${_products.where((p) => p.available).length} active', Colors.green),
-            const SizedBox(width: 10),
+            const SizedBox(width: 8),
             _statChip(Icons.hide_source_rounded, '${_products.where((p) => !p.available).length} hidden', AppColors.textMuted),
           ] else ...[
-            _statChip(Icons.category_rounded, '${_categories.length} categories', AppColors.primary),
+            _statChip(Icons.category_rounded, '${_categories.length} cats', AppColors.primary),
           ],
         ],
       ),
