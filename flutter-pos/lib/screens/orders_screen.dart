@@ -3,6 +3,7 @@ import 'package:intl/intl.dart';
 import '../models/order.dart';
 import '../services/database_service.dart';
 import '../theme/app_theme.dart';
+import '../theme/breakpoints.dart';
 import '../widgets/bill_dialog.dart';
 
 class OrdersScreen extends StatefulWidget {
@@ -164,7 +165,7 @@ class _OrdersScreenState extends State<OrdersScreen>
                       color: AppColors.primary,
                       child: LayoutBuilder(
                         builder: (_, constraints) {
-                          final isWide = constraints.maxWidth >= 700;
+                          final isWide = Breakpoints.isWide(constraints.maxWidth);
                           if (isWide) {
                             return GridView.builder(
                               padding: const EdgeInsets.all(20),
