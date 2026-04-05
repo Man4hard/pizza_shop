@@ -913,7 +913,7 @@ class _ProductsScreenState extends State<ProductsScreen>
             const SizedBox(height: 24),
             ElevatedButton.icon(
               onPressed: () => _showCategoryDialog(),
-              backgroundColor: AppColors.primary,
+              style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary),
               icon: const Icon(Icons.add_rounded, color: Colors.white),
               label: const Text('Add Category', style: TextStyle(color: Colors.white)),
             ),
