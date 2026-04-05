@@ -436,7 +436,7 @@ class _ProductsScreenState extends State<ProductsScreen> {
                 crossAxisCount: 2,
                 crossAxisSpacing: 12,
                 mainAxisSpacing: 8,
-                childAspectRatio: 3.5,
+                mainAxisExtent: 76,
               ),
               itemCount: items.length,
               itemBuilder: (_, i) => _buildProductTile(items[i]),
@@ -461,107 +461,123 @@ class _ProductsScreenState extends State<ProductsScreen> {
         color: p.available ? AppColors.cardBorder : AppColors.error.withOpacity(0.25),
       ),
     ),
-    child: ListTile(
-      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      leading: Container(
-        width: 44,
-        height: 44,
-        decoration: BoxDecoration(
-          color: p.available
-              ? AppColors.primary.withOpacity(0.12)
-              : AppColors.error.withOpacity(0.1),
-          borderRadius: BorderRadius.circular(10),
+    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+    child: Row(
+      children: [
+        Container(
+          width: 44,
+          height: 44,
+          decoration: BoxDecoration(
+            color: p.available
+                ? AppColors.primary.withOpacity(0.12)
+                : AppColors.error.withOpacity(0.1),
+            borderRadius: BorderRadius.circular(10),
+          ),
+          child: Icon(
+            Icons.local_pizza_rounded,
+            color: p.available ? AppColors.primary : AppColors.textMuted,
+            size: 22,
+          ),
         ),
-        child: Icon(
-          Icons.local_pizza_rounded,
-          color: p.available ? AppColors.primary : AppColors.textMuted,
-          size: 22,
-        ),
-      ),
-      title: Text(
-        p.name,
-        style: TextStyle(
-          color: p.available ? AppColors.textPrimary : AppColors.textMuted,
-          fontWeight: FontWeight.w600,
-          fontSize: 14,
-        ),
-      ),
-      subtitle: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const SizedBox(height: 4),
-          Row(
+        const SizedBox(width: 12),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Text(
-                _currency.format(p.price),
-                style: const TextStyle(
-                  color: AppColors.primary,
-                  fontWeight: FontWeight.w800,
-                  fontSize: 15,
+                p.name,
+                style: TextStyle(
+                  color: p.available ? AppColors.textPrimary : AppColors.textMuted,
+                  fontWeight: FontWeight.w600,
+                  fontSize: 14,
                 ),
+                overflow: TextOverflow.ellipsis,
               ),
-              const SizedBox(width: 10),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                decoration: BoxDecoration(
-                  color: AppColors.background,
-                  borderRadius: BorderRadius.circular(6),
-                ),
-                child: Text(
-                  p.categoryName ?? 'Category ${p.categoryId}',
-                  style: const TextStyle(color: AppColors.textMuted, fontSize: 11),
-                ),
+              const SizedBox(height: 4),
+              Wrap(
+                spacing: 8,
+                runSpacing: 4,
+                crossAxisAlignment: WrapCrossAlignment.center,
+                children: [
+                  Text(
+                    _currency.format(p.price),
+                    style: const TextStyle(
+                      color: AppColors.primary,
+                      fontWeight: FontWeight.w800,
+                      fontSize: 14,
+                    ),
+                  ),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
+                    decoration: BoxDecoration(
+                      color: AppColors.background,
+                      borderRadius: BorderRadius.circular(6),
+                    ),
+                    child: Text(
+                      p.categoryName ?? 'Category ${p.categoryId}',
+                      style: const TextStyle(color: AppColors.textMuted, fontSize: 11),
+                    ),
+                  ),
+                  if (!p.available)
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
+                      decoration: BoxDecoration(
+                        color: AppColors.error.withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(6),
+                      ),
+                      child: const Text(
+                        'Hidden',
+                        style: TextStyle(color: AppColors.error, fontSize: 11, fontWeight: FontWeight.w600),
+                      ),
+                    ),
+                ],
               ),
-              if (!p.available) ...[
-                const SizedBox(width: 8),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                  decoration: BoxDecoration(
-                    color: AppColors.error.withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(6),
-                  ),
-                  child: const Text(
-                    'Hidden from menu',
-                    style: TextStyle(color: AppColors.error, fontSize: 11, fontWeight: FontWeight.w600),
-                  ),
-                ),
-              ],
             ],
           ),
-        ],
-      ),
-      trailing: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          // Visibility toggle
-          Tooltip(
-            message: p.available ? 'Hide from menu' : 'Show on menu',
-            child: IconButton(
-              onPressed: () => _toggleAvailability(p),
-              icon: Icon(
-                p.available ? Icons.visibility_rounded : Icons.visibility_off_rounded,
-                color: p.available ? Colors.green : AppColors.textMuted,
-              ),
+        ),
+        Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            _actionBtn(
+              icon: p.available ? Icons.visibility_rounded : Icons.visibility_off_rounded,
+              color: p.available ? Colors.green : AppColors.textMuted,
+              tooltip: p.available ? 'Hide from menu' : 'Show on menu',
+              onTap: () => _toggleAvailability(p),
             ),
-          ),
-          // Edit
-          Tooltip(
-            message: 'Edit product',
-            child: IconButton(
-              onPressed: () => _showProductDialog(existing: p),
-              icon: const Icon(Icons.edit_rounded, color: AppColors.textSecondary),
+            _actionBtn(
+              icon: Icons.edit_rounded,
+              color: AppColors.textSecondary,
+              tooltip: 'Edit product',
+              onTap: () => _showProductDialog(existing: p),
             ),
-          ),
-          // Delete
-          Tooltip(
-            message: 'Delete product',
-            child: IconButton(
-              onPressed: () => _deleteProduct(p),
-              icon: const Icon(Icons.delete_outline_rounded, color: AppColors.error),
+            _actionBtn(
+              icon: Icons.delete_outline_rounded,
+              color: AppColors.error,
+              tooltip: 'Delete',
+              onTap: () => _deleteProduct(p),
             ),
-          ),
-        ],
-      ),
+          ],
+        ),
+      ],
     ),
   );
+
+  Widget _actionBtn({
+    required IconData icon,
+    required Color color,
+    required String tooltip,
+    required VoidCallback onTap,
+  }) =>
+      Tooltip(
+        message: tooltip,
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(8),
+          child: Padding(
+            padding: const EdgeInsets.all(8),
+            child: Icon(icon, color: color, size: 20),
+          ),
+        ),
+      );
 }
