@@ -161,24 +161,6 @@ class BillDialog extends StatelessWidget {
                   ],
                 ),
               ),
-              const SizedBox(height: 10),
-              if (order.paymentMethod != null)
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                  decoration: BoxDecoration(
-                    color: Colors.black.withOpacity(0.05),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Text(
-                    'Paid via ${order.paymentMethod!.toUpperCase()}',
-                    style: const TextStyle(
-                      color: Colors.black54,
-                      fontWeight: FontWeight.w600,
-                      fontSize: 12,
-                      letterSpacing: 0.5,
-                    ),
-                  ),
-                ),
               const SizedBox(height: 20),
               _dottedDivider(),
               const SizedBox(height: 14),
