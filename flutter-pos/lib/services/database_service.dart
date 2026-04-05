@@ -101,12 +101,15 @@ class DatabaseService {
   static Future<void> _seedData(Database db) async {
     final now = DateTime.now().toIso8601String();
 
-    // ── Categories ──────────────────────────────────────────────────────────
-    final regularId  = await db.insert('categories', {'name': 'Regular Pizzas',     'icon': '🍕', 'created_at': now});
-    final specialId  = await db.insert('categories', {'name': 'Special Pizzas',     'icon': '⭐', 'created_at': now});
-    final dealsId    = await db.insert('categories', {'name': 'Special Deals',      'icon': '🎁', 'created_at': now});
-    final burgersId  = await db.insert('categories', {'name': 'Burgers & Shawarma', 'icon': '🍔', 'created_at': now});
-    final grilledId  = await db.insert('categories', {'name': 'Crispy & Grilled',   'icon': '🍗', 'created_at': now});
+    // Insert categories first (need IDs for products)
+    final regularId = await db.insert('categories', {'name': 'Regular Pizzas',     'icon': '🍕', 'created_at': now});
+    final specialId = await db.insert('categories', {'name': 'Special Pizzas',     'icon': '⭐', 'created_at': now});
+    final dealsId   = await db.insert('categories', {'name': 'Special Deals',      'icon': '🎁', 'created_at': now});
+    final burgersId = await db.insert('categories', {'name': 'Burgers & Shawarma', 'icon': '🍔', 'created_at': now});
+    final grilledId = await db.insert('categories', {'name': 'Crispy & Grilled',   'icon': '🍗', 'created_at': now});
+
+    // Batch ALL product inserts in one transaction — 51 inserts become 1 DB round-trip
+    final batch = db.batch();
 
     // ── Regular Pizzas ──────────────────────────────────────────────────────
     final regularFlavors = {
@@ -116,12 +119,10 @@ class DatabaseService {
       'Tandoori Pizza':       [450.0, 900.0, 1250.0, 1750.0],
       'Hot & Spicy Pizza':    [450.0, 900.0, 1250.0, 1750.0],
     };
-
     final sizes = ['Small', 'Medium', 'Large', 'XL'];
-
     for (final entry in regularFlavors.entries) {
       for (int i = 0; i < sizes.length; i++) {
-        await db.insert('products', {
+        batch.insert('products', {
           'category_id': regularId,
           'name': '${entry.key} (${sizes[i]})',
           'description': '${entry.key} — ${sizes[i]} size',
@@ -139,10 +140,9 @@ class DatabaseService {
       'Kababish Pizza':            [550.0, 1050.0, 1350.0, 2150.0],
       'Crown Crust Pizza':         [650.0, 1100.0, 1550.0, 2350.0],
     };
-
     for (final entry in specialFlavors.entries) {
       for (int i = 0; i < sizes.length; i++) {
-        await db.insert('products', {
+        batch.insert('products', {
           'category_id': specialId,
           'name': '${entry.key} (${sizes[i]})',
           'description': '${entry.key} — ${sizes[i]} size (Special Flavor)',
@@ -165,9 +165,8 @@ class DatabaseService {
       {'name': 'Deal 8', 'price': 2800.0, 'description': '4 Zinger Burgers + 24 Crispy Wings + 2 Regular Fries + 1.5 Liter Drink'},
       {'name': 'Deal 9', 'price': 2450.0, 'description': '3 Small Pizzas + 12 Nuggets + 1 Family Fries + 1.5 Liter Drink'},
     ];
-
     for (final d in deals) {
-      await db.insert('products', {
+      batch.insert('products', {
         'category_id': dealsId,
         'name': d['name'],
         'description': d['description'],
@@ -184,9 +183,8 @@ class DatabaseService {
       {'name': 'Chicken Shawarma',  'price': 180.0, 'description': 'Classic chicken shawarma wrap'},
       {'name': 'Anda Shami Burger', 'price': 150.0, 'description': 'Egg & shami patty burger'},
     ];
-
     for (final b in burgers) {
-      await db.insert('products', {
+      batch.insert('products', {
         'category_id': burgersId,
         'name': b['name'],
         'description': b['description'],
@@ -201,9 +199,8 @@ class DatabaseService {
       {'name': 'Special Angara Chicken', 'price': 1500.0, 'description': 'Special Angara chicken — price per kg'},
       {'name': 'Grill Fish',             'price': 1350.0, 'description': 'Special grill fish — price per kg'},
     ];
-
     for (final g in grilled) {
-      await db.insert('products', {
+      batch.insert('products', {
         'category_id': grilledId,
         'name': g['name'],
         'description': g['description'],
@@ -212,6 +209,9 @@ class DatabaseService {
         'created_at': now,
       });
     }
+
+    // Commit everything in one shot
+    await batch.commit(noResult: true);
   }
 
   // ─── Categories ───────────────────────────────────────────────────────────
