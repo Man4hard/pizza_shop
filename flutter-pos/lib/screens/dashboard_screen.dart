@@ -143,29 +143,34 @@ class _DashboardScreenState extends State<DashboardScreen> {
   }
 
   Widget _buildHeader() => Row(
-    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+    crossAxisAlignment: CrossAxisAlignment.center,
     children: [
-      Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            'Good ${_greeting()}, Chef!',
-            style: const TextStyle(
-              color: AppColors.textMuted,
-              fontSize: 14,
+      Expanded(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Good ${_greeting()}, Chef!',
+              style: const TextStyle(
+                color: AppColors.textMuted,
+                fontSize: 14,
+              ),
             ),
-          ),
-          const SizedBox(height: 4),
-          Text(
-            DateFormat('EEEE, MMMM d').format(DateTime.now()),
-            style: const TextStyle(
-              color: AppColors.textPrimary,
-              fontSize: 22,
-              fontWeight: FontWeight.w700,
+            const SizedBox(height: 4),
+            Text(
+              DateFormat('EEEE, MMMM d').format(DateTime.now()),
+              style: const TextStyle(
+                color: AppColors.textPrimary,
+                fontSize: 22,
+                fontWeight: FontWeight.w700,
+              ),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
             ),
-          ),
-        ],
+          ],
+        ),
       ),
+      const SizedBox(width: 12),
       IconButton(
         onPressed: _load,
         icon: const Icon(Icons.refresh_rounded, color: AppColors.textSecondary),
@@ -188,7 +193,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
     crossAxisCount: columns,
     crossAxisSpacing: 16,
     mainAxisSpacing: 16,
-    childAspectRatio: columns == 4 ? 1.8 : 1.55,
+    childAspectRatio: columns == 4 ? 2.4 : 2.0,
     shrinkWrap: true,
     physics: const NeverScrollableScrollPhysics(),
     children: [
