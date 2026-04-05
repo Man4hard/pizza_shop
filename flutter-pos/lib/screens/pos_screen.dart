@@ -7,6 +7,7 @@ import '../models/order.dart';
 import '../services/database_service.dart';
 import '../services/cart_provider.dart';
 import '../theme/app_theme.dart';
+import '../theme/breakpoints.dart';
 import '../widgets/product_card.dart';
 import '../widgets/cart_item_tile.dart';
 import '../widgets/payment_dialog.dart';
@@ -230,7 +231,7 @@ class _PosScreenState extends State<PosScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final isMobile = MediaQuery.of(context).size.width < 700;
+    final isMobile = Breakpoints.isPhone(MediaQuery.of(context).size.width);
     return Scaffold(
       backgroundColor: AppColors.background,
       body: _loading
@@ -489,7 +490,7 @@ class _PosScreenState extends State<PosScreen> {
     return Consumer<CartProvider>(
       builder: (_, cart, __) => LayoutBuilder(
         builder: (_, constraints) {
-          final cols = constraints.maxWidth > 600 ? 3 : 2;
+          final cols = Breakpoints.isWide(constraints.maxWidth) ? 3 : 2;
           return GridView.builder(
         padding: const EdgeInsets.all(20),
         gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
