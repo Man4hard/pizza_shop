@@ -26,6 +26,7 @@ Color _categoryColor(String categoryName) {
 String? _productImage(String name) {
   final n = name.toLowerCase();
   if (n.contains('chicken tikka')) return 'assets/images/chicken_tikka_pizza.jpg';
+  if (n.contains('fajita'))        return 'assets/images/chicken_fajita_pizza.jpg';
   return null;
 }
 
