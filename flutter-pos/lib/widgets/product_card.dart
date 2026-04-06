@@ -261,39 +261,8 @@ class GroupedProductCard extends StatelessWidget {
                 name: baseName,
                 color: color,
                 emoji: emoji,
-                overlay: Stack(
-                  fit: StackFit.expand,
-                  children: [
-                    // Size chips at bottom
-                    Positioned(
-                      bottom: 6, left: 6, right: 6,
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: variants.map((v) {
-                          final label = _extractSize(v.name);
-                          final qty = cartQuantities[v.id] ?? 0;
-                          return Container(
-                            margin: const EdgeInsets.symmetric(horizontal: 2),
-                            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                            decoration: BoxDecoration(
-                              color: qty > 0 ? Colors.white : Colors.white.withOpacity(0.2),
-                              borderRadius: BorderRadius.circular(4),
-                            ),
-                            child: Text(
-                              label,
-                              style: TextStyle(
-                                color: qty > 0 ? color : Colors.white,
-                                fontSize: 9,
-                                fontWeight: FontWeight.w700,
-                              ),
-                            ),
-                          );
-                        }).toList(),
-                      ),
-                    ),
-                    // Cart badge
-                    if (totalInCart > 0)
-                      Positioned(
+                overlay: totalInCart > 0
+                    ? Positioned(
                         top: 6, right: 6,
                         child: Container(
                           padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
@@ -310,9 +279,8 @@ class GroupedProductCard extends StatelessWidget {
                             ),
                           ),
                         ),
-                      ),
-                  ],
-                ),
+                      )
+                    : null,
               ),
             ),
 
