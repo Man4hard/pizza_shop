@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:provider/provider.dart';
 import '../models/order.dart';
 import '../services/database_service.dart';
+import '../services/locale_provider.dart';
 import '../theme/app_theme.dart';
 import '../theme/breakpoints.dart';
 import '../widgets/bill_dialog.dart';
@@ -63,32 +65,34 @@ class _OrdersScreenState extends State<OrdersScreen>
       }
     } catch (e) {
       if (mounted) {
+        final s = context.read<LocaleProvider>().strings;
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error: $e'), backgroundColor: AppColors.error),
+          SnackBar(content: Text('${s.errorStr}: $e'), backgroundColor: AppColors.error),
         );
       }
     }
   }
 
   Future<void> _cancelOrder(Order order) async {
+    final s = context.read<LocaleProvider>().strings;
     final confirm = await showDialog<bool>(
       context: context,
       builder: (_) => AlertDialog(
         backgroundColor: AppColors.surface,
-        title: const Text('Cancel Order', style: TextStyle(color: AppColors.textPrimary)),
+        title: Text(s.cancelOrder, style: const TextStyle(color: AppColors.textPrimary)),
         content: Text(
-          'Cancel order ${order.orderNumber}?',
+          s.cancelOrderQuestion(order.orderNumber),
           style: const TextStyle(color: AppColors.textSecondary),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(_, false),
-            child: const Text('No', style: TextStyle(color: AppColors.textSecondary)),
+            child: Text(s.no, style: const TextStyle(color: AppColors.textSecondary)),
           ),
           ElevatedButton(
             onPressed: () => Navigator.pop(_, true),
             style: ElevatedButton.styleFrom(backgroundColor: AppColors.error),
-            child: const Text('Yes, Cancel'),
+            child: Text(s.yesCancelIt),
           ),
         ],
       ),
@@ -100,7 +104,7 @@ class _OrdersScreenState extends State<OrdersScreen>
       } catch (e) {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Error: $e'), backgroundColor: AppColors.error),
+            SnackBar(content: Text('${s.errorStr}: $e'), backgroundColor: AppColors.error),
           );
         }
       }
@@ -109,6 +113,7 @@ class _OrdersScreenState extends State<OrdersScreen>
 
   @override
   Widget build(BuildContext context) {
+    final s = context.watch<LocaleProvider>().strings;
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: PreferredSize(
@@ -122,9 +127,9 @@ class _OrdersScreenState extends State<OrdersScreen>
                   padding: const EdgeInsets.fromLTRB(20, 12, 20, 0),
                   child: Row(
                     children: [
-                      const Text(
-                        'Orders',
-                        style: TextStyle(
+                      Text(
+                        s.orders,
+                        style: const TextStyle(
                           color: AppColors.textPrimary,
                           fontSize: 24,
                           fontWeight: FontWeight.w700,
@@ -142,11 +147,11 @@ class _OrdersScreenState extends State<OrdersScreen>
                   controller: _tabs,
                   indicatorColor: AppColors.primary,
                   labelColor: AppColors.primary,
-                  unselectedLabelColor: AppColors.textMuted,
-                  tabs: const [
-                    Tab(text: 'Active'),
-                    Tab(text: 'Completed'),
-                    Tab(text: 'Cancelled'),
+                  unselectedLabelColor: AppColors.textSecondary,
+                  tabs: [
+                    Tab(text: s.pending),
+                    Tab(text: s.completed),
+                    Tab(text: s.cancelled),
                   ],
                 ),
               ],
@@ -159,168 +164,126 @@ class _OrdersScreenState extends State<OrdersScreen>
           : _error != null
               ? Center(child: Text(_error!, style: const TextStyle(color: AppColors.error)))
               : _orders.isEmpty
-                  ? _buildEmpty()
-                  : RefreshIndicator(
-                      onRefresh: _loadOrders,
-                      color: AppColors.primary,
-                      child: LayoutBuilder(
-                        builder: (_, constraints) {
-                          final isWide = Breakpoints.isWide(constraints.maxWidth);
-                          if (isWide) {
-                            return GridView.builder(
-                              padding: const EdgeInsets.all(20),
-                              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                                crossAxisCount: 2,
-                                crossAxisSpacing: 16,
-                                mainAxisSpacing: 0,
-                                childAspectRatio: 2.4,
-                              ),
-                              itemCount: _orders.length,
-                              itemBuilder: (_, i) => _buildOrderCard(_orders[i]),
-                            );
-                          }
-                          return ListView.builder(
+                  ? Center(
+                      child: Text(s.noOrdersFound,
+                          style: const TextStyle(color: AppColors.textMuted, fontSize: 16)))
+                  : LayoutBuilder(
+                      builder: (_, constraints) {
+                        final isWide = Breakpoints.isWide(constraints.maxWidth);
+                        if (isWide) {
+                          return GridView.builder(
                             padding: const EdgeInsets.all(20),
+                            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                              crossAxisCount: 2,
+                              crossAxisSpacing: 16,
+                              mainAxisSpacing: 16,
+                              childAspectRatio: 2.4,
+                            ),
                             itemCount: _orders.length,
-                            itemBuilder: (_, i) => _buildOrderCard(_orders[i]),
+                            itemBuilder: (_, i) => _buildOrderCard(_orders[i], s),
                           );
-                        },
-                      ),
+                        }
+                        return ListView.separated(
+                          padding: const EdgeInsets.all(16),
+                          itemCount: _orders.length,
+                          separatorBuilder: (_, __) => const SizedBox(height: 12),
+                          itemBuilder: (_, i) => _buildOrderCard(_orders[i], s),
+                        );
+                      },
                     ),
     );
   }
 
-  Widget _buildEmpty() => Center(
+  Widget _buildOrderCard(Order order, s) => Container(
+    padding: const EdgeInsets.all(16),
+    decoration: BoxDecoration(
+      color: AppColors.card,
+      borderRadius: BorderRadius.circular(16),
+      border: Border.all(color: AppColors.cardBorder),
+    ),
     child: Column(
-      mainAxisAlignment: MainAxisAlignment.center,
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Icon(Icons.receipt_long_outlined, size: 72, color: AppColors.textMuted),
-        const SizedBox(height: 16),
-        Text(
-          'No ${_selectedStatus} orders',
-          style: const TextStyle(color: AppColors.textSecondary, fontSize: 18),
+        Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+              decoration: BoxDecoration(
+                color: _statusColor(order.status).withOpacity(0.15),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Text(
+                order.orderNumber,
+                style: TextStyle(
+                  color: _statusColor(order.status),
+                  fontWeight: FontWeight.w700,
+                  fontSize: 13,
+                ),
+              ),
+            ),
+            const SizedBox(width: 8),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+              decoration: BoxDecoration(
+                color: _statusColor(order.status).withOpacity(0.1),
+                borderRadius: BorderRadius.circular(6),
+              ),
+              child: Text(
+                _statusLabel(order.status, s),
+                style: TextStyle(
+                  color: _statusColor(order.status),
+                  fontSize: 11,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+            const Spacer(),
+            Row(
+              children: [
+                const Icon(Icons.access_time_rounded, size: 13, color: AppColors.textSecondary),
+                const SizedBox(width: 4),
+                Text(
+                  _timeFormat.format(order.createdAt.toLocal()),
+                  style: const TextStyle(color: AppColors.textSecondary, fontSize: 12),
+                ),
+              ],
+            ),
+          ],
+        ),
+        const SizedBox(height: 12),
+        Row(
+          children: [
+            Text(
+              _currency.format(order.total),
+              style: const TextStyle(color: AppColors.primary, fontSize: 20, fontWeight: FontWeight.w700),
+            ),
+            const Spacer(),
+            if (order.status == 'completed')
+              TextButton.icon(
+                onPressed: () => _viewBill(order),
+                icon: const Icon(Icons.receipt_outlined, size: 16),
+                label: Text(s.viewBill),
+                style: TextButton.styleFrom(foregroundColor: AppColors.accent),
+              ),
+            if (order.status == 'pending')
+              TextButton.icon(
+                onPressed: () => _cancelOrder(order),
+                icon: const Icon(Icons.cancel_outlined, size: 16),
+                label: Text(s.cancel),
+                style: TextButton.styleFrom(foregroundColor: AppColors.error),
+              ),
+          ],
         ),
       ],
     ),
   );
 
-  Widget _buildOrderCard(Order order) {
-    final statusColor = _statusColor(order.status);
-    return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: AppColors.card,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.cardBorder),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Text(
-                order.orderNumber,
-                style: const TextStyle(
-                  color: AppColors.textPrimary,
-                  fontWeight: FontWeight.w700,
-                  fontSize: 16,
-                ),
-              ),
-              const Spacer(),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                decoration: BoxDecoration(
-                  color: statusColor.withOpacity(0.15),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Text(
-                  order.status.toUpperCase(),
-                  style: TextStyle(
-                    color: statusColor,
-                    fontSize: 11,
-                    fontWeight: FontWeight.w700,
-                    letterSpacing: 0.5,
-                  ),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 8),
-          Wrap(
-            spacing: 12,
-            runSpacing: 4,
-            crossAxisAlignment: WrapCrossAlignment.center,
-            children: [
-              if (order.customerName != null)
-                Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    const Icon(Icons.person_outline, size: 13, color: AppColors.textMuted),
-                    const SizedBox(width: 4),
-                    ConstrainedBox(
-                      constraints: const BoxConstraints(maxWidth: 140),
-                      child: Text(
-                        order.customerName!,
-                        style: const TextStyle(color: AppColors.textSecondary, fontSize: 12),
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ),
-                  ],
-                ),
-              if (order.tableNumber != null)
-                Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    const Icon(Icons.table_restaurant_outlined, size: 13, color: AppColors.textMuted),
-                    const SizedBox(width: 4),
-                    Text('Table ${order.tableNumber}', style: const TextStyle(color: AppColors.textSecondary, fontSize: 12)),
-                  ],
-                ),
-              Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  const Icon(Icons.access_time_rounded, size: 13, color: AppColors.textMuted),
-                  const SizedBox(width: 4),
-                  Text(
-                    _timeFormat.format(order.createdAt.toLocal()),
-                    style: const TextStyle(color: AppColors.textSecondary, fontSize: 12),
-                  ),
-                ],
-              ),
-            ],
-          ),
-          const SizedBox(height: 12),
-          Row(
-            children: [
-              Text(
-                _currency.format(order.total),
-                style: const TextStyle(
-                  color: AppColors.primary,
-                  fontSize: 20,
-                  fontWeight: FontWeight.w700,
-                ),
-              ),
-              const Spacer(),
-              if (order.status == 'completed')
-                TextButton.icon(
-                  onPressed: () => _viewBill(order),
-                  icon: const Icon(Icons.receipt_outlined, size: 16),
-                  label: const Text('View Bill'),
-                  style: TextButton.styleFrom(foregroundColor: AppColors.accent),
-                ),
-              if (order.status == 'pending')
-                TextButton.icon(
-                  onPressed: () => _cancelOrder(order),
-                  icon: const Icon(Icons.cancel_outlined, size: 16),
-                  label: const Text('Cancel'),
-                  style: TextButton.styleFrom(foregroundColor: AppColors.error),
-                ),
-            ],
-          ),
-        ],
-      ),
-    );
+  String _statusLabel(String status, s) {
+    switch (status) {
+      case 'completed': return s.completed;
+      case 'cancelled': return s.cancelled;
+      default: return s.pending;
+    }
   }
 
   Color _statusColor(String status) {
