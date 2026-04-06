@@ -643,12 +643,12 @@ class _ProductsScreenState extends State<ProductsScreen>
               mainAxisSize: MainAxisSize.min,
               children: [
                 Text(
-                  isProductsTab ? 'Products' : 'Categories',
+                  isProductsTab ? s.products : s.categories,
                   style: const TextStyle(color: AppColors.textPrimary, fontSize: 20, fontWeight: FontWeight.w800),
                   overflow: TextOverflow.ellipsis,
                 ),
                 Text(
-                  isProductsTab ? 'Manage your menu items' : 'Manage product categories',
+                  isProductsTab ? s.manageProducts : s.categories,
                   style: const TextStyle(color: AppColors.textMuted, fontSize: 12),
                   overflow: TextOverflow.ellipsis,
                 ),
@@ -667,6 +667,7 @@ class _ProductsScreenState extends State<ProductsScreen>
       ),
     ),
   );
+  }
 
   Widget _statChip(IconData icon, String label, Color color) => Container(
     padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
@@ -685,8 +686,6 @@ class _ProductsScreenState extends State<ProductsScreen>
   );
 
   // ── Products tab ──────────────────────────────────────────────────
-
-  }
 
   Widget _buildProductsTab() => Column(
     children: [
@@ -739,17 +738,18 @@ class _ProductsScreenState extends State<ProductsScreen>
       ],
     ),
   );
+  }
 
   Widget _buildProductList() {
     final s = context.read<LocaleProvider>().strings;
     final items = _filtered;
     if (items.isEmpty) {
-      return const Center(
+      return Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.inventory_2_outlined, size: 64, color: AppColors.textMuted),
-            SizedBox(height: 16),
+            const Icon(Icons.inventory_2_outlined, size: 64, color: AppColors.textMuted),
+            const SizedBox(height: 16),
             Text(s.noItemsFound, style: const TextStyle(color: AppColors.textMuted, fontSize: 16)),
           ],
         ),
