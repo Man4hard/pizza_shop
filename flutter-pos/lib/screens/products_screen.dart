@@ -67,7 +67,7 @@ class _ProductsScreenState extends State<ProductsScreen>
       });
     } catch (e) {
       setState(() => _loading = false);
-      _showError('${s.failedToLoad}: $e');
+      _showError('${context.read<LocaleProvider>().strings.failedToLoad}: $e');
     }
   }
 
@@ -147,6 +147,7 @@ class _ProductsScreenState extends State<ProductsScreen>
 
   // ── Add / Edit product dialog ─────────────────────────────────────
   Future<void> _showProductDialog({Product? existing}) async {
+    final s = context.read<LocaleProvider>().strings;
     final nameCtrl = TextEditingController(text: existing?.name ?? '');
     final priceCtrl = TextEditingController(text: existing != null ? existing.price.toStringAsFixed(0) : '');
     final descCtrl = TextEditingController(text: existing?.description ?? '');
@@ -338,6 +339,7 @@ class _ProductsScreenState extends State<ProductsScreen>
   ];
 
   Future<void> _showCategoryDialog({Category? existing}) async {
+    final s = context.read<LocaleProvider>().strings;
     final nameCtrl = TextEditingController(text: existing?.name ?? '');
     String? selectedEmoji = existing?.icon;
     final formKey = GlobalKey<FormState>();
@@ -626,7 +628,9 @@ class _ProductsScreenState extends State<ProductsScreen>
     );
   }
 
-  Widget _buildTopBar(bool isProductsTab) => SafeArea(
+  Widget _buildTopBar(bool isProductsTab) {
+    final s = context.read<LocaleProvider>().strings;
+    return SafeArea(
     bottom: false,
     child: Container(
       padding: const EdgeInsets.fromLTRB(24, 16, 24, 12),
@@ -682,6 +686,8 @@ class _ProductsScreenState extends State<ProductsScreen>
 
   // ── Products tab ──────────────────────────────────────────────────
 
+  }
+
   Widget _buildProductsTab() => Column(
     children: [
       _buildFilters(),
@@ -689,7 +695,9 @@ class _ProductsScreenState extends State<ProductsScreen>
     ],
   );
 
-  Widget _buildFilters() => Padding(
+  Widget _buildFilters() {
+    final s = context.read<LocaleProvider>().strings;
+    return Padding(
     padding: const EdgeInsets.fromLTRB(20, 12, 20, 4),
     child: Row(
       children: [
@@ -733,6 +741,7 @@ class _ProductsScreenState extends State<ProductsScreen>
   );
 
   Widget _buildProductList() {
+    final s = context.read<LocaleProvider>().strings;
     final items = _filtered;
     if (items.isEmpty) {
       return const Center(
@@ -961,6 +970,7 @@ class _ProductsScreenState extends State<ProductsScreen>
   }
 
   Widget _buildCategoryCard(Category cat) {
+    final s = context.read<LocaleProvider>().strings;
     final productCount = _categoryProductCounts[cat.id] ?? 0;
     final hasIcon = cat.icon != null && cat.icon!.isNotEmpty;
 
