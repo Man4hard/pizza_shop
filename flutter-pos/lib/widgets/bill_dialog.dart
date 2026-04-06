@@ -24,7 +24,7 @@ class BillDialog extends StatelessWidget {
             children: [
               // Header
               Image.asset(
-                'assets/images/logo.png',
+                'assets/images/receipt_logo.jpg',
                 height: 72,
                 fit: BoxFit.contain,
               ),
