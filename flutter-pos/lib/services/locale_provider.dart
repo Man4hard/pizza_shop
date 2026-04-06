@@ -8,8 +8,6 @@ class LocaleProvider extends ChangeNotifier {
 
   bool get isUrdu => _isUrdu;
   AppStrings get strings => AppStrings(isUrdu: _isUrdu);
-  TextDirection get textDirection =>
-      _isUrdu ? TextDirection.rtl : TextDirection.ltr;
 
   ThemeData get theme {
     if (_isUrdu) {
