@@ -23,25 +23,10 @@ class BillDialog extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               // Header
-              const Icon(Icons.local_pizza_rounded, color: AppColors.primary, size: 48),
-              const SizedBox(height: 8),
-              const Text(
-                'AHMED FAST FOOD',
-                style: TextStyle(
-                  color: Colors.black87,
-                  fontSize: 20,
-                  fontWeight: FontWeight.w800,
-                  letterSpacing: 1.5,
-                ),
-                textAlign: TextAlign.center,
-              ),
-              const Text(
-                'Pizza & Barbeque',
-                style: TextStyle(
-                  color: AppColors.primary,
-                  fontSize: 14,
-                  fontWeight: FontWeight.w600,
-                ),
+              Image.asset(
+                'assets/images/logo.png',
+                height: 72,
+                fit: BoxFit.contain,
               ),
               const SizedBox(height: 4),
               const Text(

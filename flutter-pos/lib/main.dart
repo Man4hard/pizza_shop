@@ -97,40 +97,11 @@ class _HomeShellState extends State<HomeShell> {
       children: [
         const SizedBox(height: 32),
         Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 20),
-          child: Row(
-            children: [
-              Container(
-                width: 40,
-                height: 40,
-                decoration: BoxDecoration(
-                  color: AppColors.primary,
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: const Icon(Icons.local_pizza_rounded, color: Colors.white, size: 22),
-              ),
-              const SizedBox(width: 12),
-              const Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Ahmed Fast Food',
-                      style: TextStyle(
-                        color: AppColors.textPrimary,
-                        fontWeight: FontWeight.w800,
-                        fontSize: 15,
-                      ),
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    Text(
-                      'Pizza & Barbeque',
-                      style: TextStyle(color: AppColors.textMuted, fontSize: 12),
-                    ),
-                  ],
-                ),
-              ),
-            ],
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          child: Image.asset(
+            'assets/images/logo.png',
+            height: 48,
+            fit: BoxFit.contain,
           ),
         ),
         const SizedBox(height: 28),
@@ -245,14 +216,10 @@ class _HomeShellState extends State<HomeShell> {
       ),
       leading: Padding(
         padding: const EdgeInsets.only(top: 12, bottom: 8),
-        child: Container(
-          width: 40,
+        child: Image.asset(
+          'assets/images/logo.png',
           height: 40,
-          decoration: BoxDecoration(
-            color: AppColors.primary,
-            borderRadius: BorderRadius.circular(12),
-          ),
-          child: const Icon(Icons.local_pizza_rounded, color: Colors.white, size: 22),
+          fit: BoxFit.contain,
         ),
       ),
       destinations: _navItems.map((item) => NavigationRailDestination(
