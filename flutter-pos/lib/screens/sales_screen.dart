@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:provider/provider.dart';
 import '../models/sale_record.dart';
 import '../services/database_service.dart';
+import '../services/locale_provider.dart';
 import '../theme/app_theme.dart';
 import '../theme/breakpoints.dart';
 
@@ -60,8 +62,7 @@ class _SalesScreenState extends State<SalesScreen> {
     }
   }
 
-  double get _totalRevenue =>
-      _sales.fold(0, (sum, s) => sum + s.total);
+  double get _totalRevenue => _sales.fold(0, (sum, s) => sum + s.total);
 
   Map<String, double> get _paymentBreakdown {
     final map = <String, double>{};
@@ -73,18 +74,19 @@ class _SalesScreenState extends State<SalesScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final s = context.watch<LocaleProvider>().strings;
     return Scaffold(
       backgroundColor: AppColors.background,
       body: Column(
         children: [
-          _buildHeader(),
+          _buildHeader(s),
           Expanded(
             child: _loading
                 ? const Center(child: CircularProgressIndicator(color: AppColors.primary))
                 : _error != null
                     ? Center(child: Text(_error!, style: const TextStyle(color: AppColors.error)))
                     : _sales.isEmpty
-                        ? _buildEmpty()
+                        ? _buildEmpty(s)
                         : RefreshIndicator(
                             onRefresh: _load,
                             color: AppColors.primary,
@@ -93,7 +95,7 @@ class _SalesScreenState extends State<SalesScreen> {
                                 final isWide = Breakpoints.isWide(constraints.maxWidth);
                                 return CustomScrollView(
                                   slivers: [
-                                    SliverToBoxAdapter(child: _buildSummary()),
+                                    SliverToBoxAdapter(child: _buildSummary(s)),
                                     SliverPadding(
                                       padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
                                       sliver: isWide
@@ -105,13 +107,13 @@ class _SalesScreenState extends State<SalesScreen> {
                                                 childAspectRatio: 3.2,
                                               ),
                                               delegate: SliverChildBuilderDelegate(
-                                                (_, i) => _buildSaleTile(_sales[i]),
+                                                (_, i) => _buildSaleTile(_sales[i], s),
                                                 childCount: _sales.length,
                                               ),
                                             )
                                           : SliverList(
                                               delegate: SliverChildBuilderDelegate(
-                                                (_, i) => _buildSaleTile(_sales[i]),
+                                                (_, i) => _buildSaleTile(_sales[i], s),
                                                 childCount: _sales.length,
                                               ),
                                             ),
@@ -127,218 +129,159 @@ class _SalesScreenState extends State<SalesScreen> {
     );
   }
 
-  Widget _buildHeader() => SafeArea(
-    bottom: false,
-    child: Container(
-      color: AppColors.surface,
-      padding: const EdgeInsets.fromLTRB(16, 12, 8, 16),
-      child: Row(
-        children: [
-          const Text(
-            'Sales History',
-            style: TextStyle(
-              color: AppColors.textPrimary,
-              fontSize: 20,
-              fontWeight: FontWeight.w700,
-            ),
-          ),
-          const Spacer(),
-          Flexible(
-            child: OutlinedButton.icon(
-              onPressed: _pickDateRange,
-              icon: const Icon(Icons.calendar_today_rounded, size: 15, color: AppColors.textSecondary),
-              label: Text(
-                _dateRange != null
-                    ? '${_dateFormat.format(_dateRange!.start)} – ${_dateFormat.format(_dateRange!.end)}'
-                    : 'All Time',
-                style: const TextStyle(color: AppColors.textSecondary, fontSize: 12),
-                overflow: TextOverflow.ellipsis,
-              ),
-              style: OutlinedButton.styleFrom(
-                side: const BorderSide(color: AppColors.cardBorder),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-              ),
-            ),
-          ),
-          if (_dateRange != null)
-            IconButton(
-              onPressed: () {
-                setState(() => _dateRange = null);
-                _load();
-              },
-              icon: const Icon(Icons.clear_rounded, color: AppColors.textMuted, size: 18),
-            ),
-        ],
-      ),
-    ),
-  );
-
-  Widget _buildSummary() {
-    final breakdown = _paymentBreakdown;
-    return Padding(
-      padding: const EdgeInsets.all(20),
-      child: Container(
-        padding: const EdgeInsets.all(20),
-        decoration: BoxDecoration(
-          gradient: const LinearGradient(
-            colors: [Color(0xFF3D0E0D), Color(0xFF1A0A09)],
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-          ),
-          borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: AppColors.primary.withOpacity(0.3)),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text(
-              'Total Revenue',
-              style: TextStyle(color: AppColors.textSecondary, fontSize: 14),
-            ),
-            const SizedBox(height: 4),
-            Text(
-              _currency.format(_totalRevenue),
-              style: const TextStyle(
-                color: AppColors.primaryLight,
-                fontSize: 36,
-                fontWeight: FontWeight.w800,
-              ),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              '${_sales.length} transactions',
-              style: const TextStyle(color: AppColors.textMuted, fontSize: 13),
-            ),
-            if (breakdown.isNotEmpty) ...[
-              const SizedBox(height: 16),
-              const Divider(color: AppColors.divider),
-              const SizedBox(height: 12),
-              Row(
-                children: breakdown.entries.map((e) => Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        _currency.format(e.value),
-                        style: const TextStyle(color: AppColors.textPrimary, fontWeight: FontWeight.w600, fontSize: 16),
-                      ),
-                      Text(
-                        _paymentIcon(e.key) + ' ' + e.key.toUpperCase(),
-                        style: const TextStyle(color: AppColors.textMuted, fontSize: 12),
-                      ),
-                    ],
-                  ),
-                )).toList(),
-              ),
-            ],
-          ],
-        ),
-      ),
-    );
-  }
-
-  String _paymentIcon(String method) {
-    switch (method.toLowerCase()) {
-      case 'cash': return '💵';
-      case 'card': return '💳';
-      case 'digital': return '📱';
-      default: return '💰';
-    }
-  }
-
-  Widget _buildEmpty() => Center(
-    child: Column(
-      mainAxisAlignment: MainAxisAlignment.center,
+  Widget _buildHeader(s) => Container(
+    color: AppColors.surface,
+    padding: const EdgeInsets.fromLTRB(20, 52, 20, 16),
+    child: Row(
       children: [
-        const Icon(Icons.bar_chart_outlined, size: 72, color: AppColors.textMuted),
-        const SizedBox(height: 16),
-        const Text('No sales records', style: TextStyle(color: AppColors.textSecondary, fontSize: 18)),
-        const SizedBox(height: 8),
-        const Text('Complete orders to see records here', style: TextStyle(color: AppColors.textMuted)),
-        const SizedBox(height: 24),
+        Text(
+          s.salesHistory,
+          style: const TextStyle(color: AppColors.textPrimary, fontSize: 24, fontWeight: FontWeight.w700),
+        ),
+        const Spacer(),
+        TextButton.icon(
+          onPressed: _pickDateRange,
+          icon: const Icon(Icons.date_range_rounded, size: 18),
+          label: Text(
+            _dateRange != null
+                ? '${_dateFormat.format(_dateRange!.start)} – ${_dateFormat.format(_dateRange!.end)}'
+                : s.filterByDate,
+          ),
+          style: TextButton.styleFrom(foregroundColor: AppColors.accent),
+        ),
         if (_dateRange != null)
-          OutlinedButton(
-            onPressed: () {
-              setState(() => _dateRange = null);
-              _load();
-            },
-            child: const Text('Clear filter'),
+          IconButton(
+            onPressed: () { setState(() => _dateRange = null); _load(); },
+            icon: const Icon(Icons.clear_rounded, color: AppColors.textSecondary, size: 18),
+            tooltip: s.clearFilter,
           ),
       ],
     ),
   );
 
-  Widget _buildSaleTile(SaleRecord sale) {
-    final paymentColor = _pmColor(sale.paymentMethod);
-    return Container(
-      margin: const EdgeInsets.only(bottom: 10),
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: AppColors.card,
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: AppColors.cardBorder),
-      ),
-      child: Row(
-        children: [
-          Container(
-            width: 44,
-            height: 44,
-            decoration: BoxDecoration(
-              color: paymentColor.withOpacity(0.12),
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: Center(
-              child: Text(_paymentIcon(sale.paymentMethod), style: const TextStyle(fontSize: 20)),
-            ),
+  Widget _buildSummary(s) => Padding(
+    padding: const EdgeInsets.all(20),
+    child: Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: AppColors.primary.withOpacity(0.1),
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: AppColors.primary.withOpacity(0.2)),
           ),
-          const SizedBox(width: 14),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  sale.orderNumber,
-                  style: const TextStyle(
-                    color: AppColors.textPrimary,
-                    fontWeight: FontWeight.w600,
-                    fontSize: 15,
+          child: Row(
+            children: [
+              const Icon(Icons.payments_rounded, color: AppColors.primary, size: 28),
+              const SizedBox(width: 12),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(s.totalRevenue, style: const TextStyle(color: AppColors.textSecondary, fontSize: 12)),
+                  Text(
+                    _currency.format(_totalRevenue),
+                    style: const TextStyle(color: AppColors.primary, fontSize: 24, fontWeight: FontWeight.w800),
                   ),
+                ],
+              ),
+              const Spacer(),
+              ..._paymentBreakdown.entries.map((e) => Padding(
+                padding: const EdgeInsets.only(left: 16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    Text(_pmLabel(e.key, s), style: TextStyle(color: _pmColor(e.key), fontSize: 11, fontWeight: FontWeight.w600)),
+                    Text(_currency.format(e.value), style: const TextStyle(color: AppColors.textPrimary, fontSize: 14, fontWeight: FontWeight.w600)),
+                  ],
                 ),
-                const SizedBox(height: 3),
-                Text(
-                  [
-                    _dateFormat.format(sale.soldAt.toLocal()),
-                    _timeFormat.format(sale.soldAt.toLocal()),
-                    if (sale.tableNumber != null) 'Table ${sale.tableNumber}',
-                  ].join(' · '),
-                  style: const TextStyle(color: AppColors.textMuted, fontSize: 12),
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ],
-            ),
+              )),
+            ],
           ),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.end,
+        ),
+      ],
+    ),
+  );
+
+  Widget _buildEmpty(s) => Center(
+    child: Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        const Icon(Icons.receipt_long_outlined, size: 64, color: AppColors.textMuted),
+        const SizedBox(height: 16),
+        Text(s.noSales, style: const TextStyle(color: AppColors.textMuted, fontSize: 16)),
+      ],
+    ),
+  );
+
+  Widget _buildSaleTile(SaleRecord sale, s) => Container(
+    margin: const EdgeInsets.only(bottom: 8),
+    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+    decoration: BoxDecoration(
+      color: AppColors.card,
+      borderRadius: BorderRadius.circular(12),
+      border: Border.all(color: AppColors.cardBorder),
+    ),
+    child: Row(
+      children: [
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+          decoration: BoxDecoration(
+            color: _pmColor(sale.paymentMethod).withOpacity(0.12),
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: Text(
+            _pmLabel(sale.paymentMethod, s),
+            style: TextStyle(color: _pmColor(sale.paymentMethod), fontSize: 12, fontWeight: FontWeight.w600),
+          ),
+        ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                _currency.format(sale.total),
-                style: const TextStyle(
-                  color: AppColors.success,
-                  fontWeight: FontWeight.w700,
-                  fontSize: 16,
-                ),
+                sale.orderNumber,
+                style: const TextStyle(color: AppColors.textPrimary, fontWeight: FontWeight.w600, fontSize: 15),
               ),
-              const SizedBox(height: 2),
+              const SizedBox(height: 3),
               Text(
-                '${sale.itemCount} items',
+                [
+                  _dateFormat.format(sale.soldAt.toLocal()),
+                  _timeFormat.format(sale.soldAt.toLocal()),
+                  if (sale.tableNumber != null) '${s.tableLabel} ${sale.tableNumber}',
+                ].join(' · '),
                 style: const TextStyle(color: AppColors.textMuted, fontSize: 12),
+                overflow: TextOverflow.ellipsis,
               ),
             ],
           ),
-        ],
-      ),
-    );
+        ),
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.end,
+          children: [
+            Text(
+              _currency.format(sale.total),
+              style: const TextStyle(color: AppColors.success, fontWeight: FontWeight.w700, fontSize: 16),
+            ),
+            const SizedBox(height: 2),
+            Text(
+              '${sale.itemCount} ${s.itemsLabel}',
+              style: const TextStyle(color: AppColors.textMuted, fontSize: 12),
+            ),
+          ],
+        ),
+      ],
+    ),
+  );
+
+  String _pmLabel(String method, s) {
+    switch (method.toLowerCase()) {
+      case 'cash': return s.cash;
+      case 'card': return s.card;
+      case 'digital': return s.digital;
+      default: return method;
+    }
   }
 
   Color _pmColor(String method) {
