@@ -22,6 +22,82 @@ Color _categoryColor(String categoryName) {
   return AppColors.primary;
 }
 
+/// Returns a local asset image path for a product name, or null if no image.
+String? _productImage(String name) {
+  final n = name.toLowerCase();
+  if (n.contains('chicken tikka')) return 'assets/images/chicken_tikka_pizza.jpg';
+  return null;
+}
+
+/// Header widget: real photo if available, else colored gradient + emoji.
+Widget _buildCardHeader({
+  required String name,
+  required Color color,
+  required String emoji,
+  Widget? overlay,
+}) {
+  final imagePath = _productImage(name);
+
+  if (imagePath != null) {
+    return Stack(
+      fit: StackFit.expand,
+      children: [
+        Image.asset(
+          imagePath,
+          fit: BoxFit.cover,
+          errorBuilder: (_, __, ___) => Container(
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: [color, color.withOpacity(0.6)],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+            ),
+            child: Center(child: Text(emoji, style: const TextStyle(fontSize: 40))),
+          ),
+        ),
+        // Dark gradient overlay so badges stay readable
+        Positioned.fill(
+          child: DecoratedBox(
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: [Colors.transparent, Colors.black.withOpacity(0.35)],
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+              ),
+            ),
+          ),
+        ),
+        if (overlay != null) overlay,
+      ],
+    );
+  }
+
+  // No image → gradient + emoji
+  return Stack(
+    fit: StackFit.expand,
+    children: [
+      DecoratedBox(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            colors: [color, color.withOpacity(0.6)],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
+        ),
+      ),
+      Positioned(right: -12, top: -12,
+        child: Container(width: 60, height: 60,
+          decoration: BoxDecoration(color: Colors.white.withOpacity(0.08), shape: BoxShape.circle))),
+      Positioned(left: -8, bottom: -8,
+        child: Container(width: 40, height: 40,
+          decoration: BoxDecoration(color: Colors.white.withOpacity(0.06), shape: BoxShape.circle))),
+      Center(child: Text(emoji, style: const TextStyle(fontSize: 40))),
+      if (overlay != null) overlay,
+    ],
+  );
+}
+
 // ── Single Product Card ───────────────────────────────────────────────────────
 
 class ProductCard extends StatelessWidget {
@@ -62,51 +138,15 @@ class ProductCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            // ── Gradient header with emoji ──
+            // ── Header: real photo or gradient+emoji ──
             Expanded(
               flex: 5,
-              child: Container(
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: [color, color.withOpacity(0.6)],
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                  ),
-                ),
-                child: Stack(
-                  children: [
-                    // Decorative circle
-                    Positioned(
-                      right: -12,
-                      top: -12,
-                      child: Container(
-                        width: 60,
-                        height: 60,
-                        decoration: BoxDecoration(
-                          color: Colors.white.withOpacity(0.08),
-                          shape: BoxShape.circle,
-                        ),
-                      ),
-                    ),
-                    Positioned(
-                      left: -8,
-                      bottom: -8,
-                      child: Container(
-                        width: 40,
-                        height: 40,
-                        decoration: BoxDecoration(
-                          color: Colors.white.withOpacity(0.06),
-                          shape: BoxShape.circle,
-                        ),
-                      ),
-                    ),
-                    // Emoji
-                    Center(
-                      child: Text(emoji, style: const TextStyle(fontSize: 40)),
-                    ),
-                    // Cart badge
-                    if (inCart)
-                      Positioned(
+              child: _buildCardHeader(
+                name: product.name,
+                color: color,
+                emoji: emoji,
+                overlay: inCart
+                    ? Positioned(
                         top: 6,
                         right: 6,
                         child: Container(
@@ -124,9 +164,8 @@ class ProductCard extends StatelessWidget {
                             ),
                           ),
                         ),
-                      ),
-                  ],
-                ),
+                      )
+                    : null,
               ),
             ),
 
@@ -215,41 +254,17 @@ class GroupedProductCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            // ── Gradient header ──
+            // ── Header: real photo or gradient+emoji ──
             Expanded(
               flex: 5,
-              child: Container(
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: [color, color.withOpacity(0.6)],
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                  ),
-                ),
-                child: Stack(
+              child: _buildCardHeader(
+                name: baseName,
+                color: color,
+                emoji: emoji,
+                overlay: Stack(
+                  fit: StackFit.expand,
                   children: [
-                    Positioned(
-                      right: -12, top: -12,
-                      child: Container(
-                        width: 60, height: 60,
-                        decoration: BoxDecoration(
-                          color: Colors.white.withOpacity(0.08),
-                          shape: BoxShape.circle,
-                        ),
-                      ),
-                    ),
-                    Positioned(
-                      left: -8, bottom: -8,
-                      child: Container(
-                        width: 40, height: 40,
-                        decoration: BoxDecoration(
-                          color: Colors.white.withOpacity(0.06),
-                          shape: BoxShape.circle,
-                        ),
-                      ),
-                    ),
-                    Center(child: Text(emoji, style: const TextStyle(fontSize: 40))),
-                    // Size labels row at bottom
+                    // Size chips at bottom
                     Positioned(
                       bottom: 6, left: 6, right: 6,
                       child: Row(
@@ -276,6 +291,7 @@ class GroupedProductCard extends StatelessWidget {
                         }).toList(),
                       ),
                     ),
+                    // Cart badge
                     if (totalInCart > 0)
                       Positioned(
                         top: 6, right: 6,
