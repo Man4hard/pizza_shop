@@ -3,6 +3,8 @@ import 'package:intl/intl.dart';
 import '../models/category.dart';
 import '../models/product.dart';
 import '../services/database_service.dart';
+import '../services/locale_provider.dart';
+import 'package:provider/provider.dart';
 import '../theme/app_theme.dart';
 import '../theme/breakpoints.dart';
 
@@ -65,7 +67,7 @@ class _ProductsScreenState extends State<ProductsScreen>
       });
     } catch (e) {
       setState(() => _loading = false);
-      _showError('Failed to load: $e');
+      _showError('${s.failedToLoad}: $e');
     }
   }
 
@@ -176,7 +178,7 @@ class _ProductsScreenState extends State<ProductsScreen>
                         ),
                         const SizedBox(width: 10),
                         Text(
-                          existing == null ? 'Add New Product' : 'Edit Product',
+                          existing == null ? s.addNewProduct : s.editProductTitle,
                           style: const TextStyle(
                             color: AppColors.textPrimary,
                             fontSize: 18,
@@ -197,10 +199,10 @@ class _ProductsScreenState extends State<ProductsScreen>
                       controller: nameCtrl,
                       style: const TextStyle(color: AppColors.textPrimary),
                       decoration: const InputDecoration(
-                        labelText: 'Product Name *',
+                        labelText: s.nameLabel,
                         hintText: 'e.g. Chicken Tikka Pizza (Large)',
                       ),
-                      validator: (v) => v == null || v.trim().isEmpty ? 'Name is required' : null,
+                      validator: (v) => v == null || v.trim().isEmpty ? s.nameRequired : null,
                     ),
                     const SizedBox(height: 16),
 
@@ -228,13 +230,13 @@ class _ProductsScreenState extends State<ProductsScreen>
                       value: selectedCategoryId,
                       dropdownColor: AppColors.surface,
                       style: const TextStyle(color: AppColors.textPrimary),
-                      decoration: const InputDecoration(labelText: 'Category *'),
+                      decoration: InputDecoration(labelText: s.categoryLabel),
                       items: _categories.map((c) => DropdownMenuItem(
                         value: c.id,
                         child: Text(c.name, style: const TextStyle(color: AppColors.textPrimary)),
                       )).toList(),
                       onChanged: (v) => setS(() => selectedCategoryId = v),
-                      validator: (v) => v == null ? 'Select a category' : null,
+                      validator: (v) => v == null ? s.selectCategory : null,
                     ),
                     const SizedBox(height: 16),
 
@@ -252,7 +254,7 @@ class _ProductsScreenState extends State<ProductsScreen>
                     // Available toggle
                     Row(
                       children: [
-                        const Text('Show on Menu', style: TextStyle(color: AppColors.textSecondary, fontSize: 14)),
+                        Text(s.available, style: const TextStyle(color: AppColors.textSecondary, fontSize: 14)),
                         const Spacer(),
                         Switch(
                           value: available,
@@ -301,7 +303,7 @@ class _ProductsScreenState extends State<ProductsScreen>
                                 }
                                 await _loadData();
                               } catch (e) {
-                                _showError('Save failed: $e');
+                                _showError('${s.updateFailed}: $e');
                               }
                             },
                             style: ElevatedButton.styleFrom(
@@ -404,7 +406,7 @@ class _ProductsScreenState extends State<ProductsScreen>
                       controller: nameCtrl,
                       style: const TextStyle(color: AppColors.textPrimary),
                       decoration: const InputDecoration(
-                        labelText: 'Category Name *',
+                        labelText: s.categoryNameLabel,
                         hintText: 'e.g. Sandwiches, Drinks...',
                       ),
                       validator: (v) => v == null || v.trim().isEmpty ? 'Name is required' : null,
@@ -413,7 +415,7 @@ class _ProductsScreenState extends State<ProductsScreen>
 
                     // Emoji picker
                     const Text(
-                      'Choose an Icon (optional)',
+                      s.chooseIcon,
                       style: TextStyle(color: AppColors.textMuted, fontSize: 13),
                     ),
                     const SizedBox(height: 10),
@@ -495,14 +497,14 @@ class _ProductsScreenState extends State<ProductsScreen>
                                     nameCtrl.text.trim(),
                                     icon: selectedEmoji,
                                   );
-                                  _showSuccess('Category added!');
+                                  _showSuccess(s.categoryAdded);
                                 } else {
                                   await DatabaseService.updateCategory(
                                     existing.id,
                                     nameCtrl.text.trim(),
                                     icon: selectedEmoji,
                                   );
-                                  _showSuccess('Category updated!');
+                                  _showSuccess(s.categoryUpdated);
                                 }
                                 await _loadData();
                               } catch (e) {
@@ -515,7 +517,7 @@ class _ProductsScreenState extends State<ProductsScreen>
                               padding: const EdgeInsets.symmetric(vertical: 14),
                             ),
                             child: Text(
-                              existing == null ? 'Add Category' : 'Save Changes',
+                              existing == null ? s.addCategoryTitle : s.save,
                               style: const TextStyle(fontWeight: FontWeight.w600),
                             ),
                           ),
@@ -651,11 +653,11 @@ class _ProductsScreenState extends State<ProductsScreen>
           ),
           const SizedBox(width: 8),
           if (isProductsTab) ...[
-            _statChip(Icons.check_circle_outline_rounded, '${_products.where((p) => p.available).length} active', Colors.green),
+            _statChip(Icons.check_circle_outline_rounded, s.activeCount(_products.where((p) => p.available).length), Colors.green),
             const SizedBox(width: 8),
-            _statChip(Icons.hide_source_rounded, '${_products.where((p) => !p.available).length} hidden', AppColors.textMuted),
+            _statChip(Icons.hide_source_rounded, s.hiddenCount(_products.where((p) => !p.available).length), AppColors.textMuted),
           ] else ...[
-            _statChip(Icons.category_rounded, '${_categories.length} cats', AppColors.primary),
+            _statChip(Icons.category_rounded, s.catsCount(_categories.length), AppColors.primary),
           ],
         ],
       ),
@@ -697,7 +699,7 @@ class _ProductsScreenState extends State<ProductsScreen>
             style: const TextStyle(color: AppColors.textPrimary),
             onChanged: (v) => setState(() => _search = v),
             decoration: InputDecoration(
-              hintText: 'Search products...',
+              hintText: s.searchProducts,
               prefixIcon: const Icon(Icons.search_rounded, color: AppColors.textMuted),
               suffixIcon: _search.isNotEmpty
                   ? IconButton(
@@ -716,9 +718,9 @@ class _ProductsScreenState extends State<ProductsScreen>
           dropdownColor: AppColors.surface,
           style: const TextStyle(color: AppColors.textPrimary, fontSize: 13),
           underline: const SizedBox.shrink(),
-          hint: const Text('All categories', style: TextStyle(color: AppColors.textMuted, fontSize: 13)),
+          hint: Text(s.allCategories, style: const TextStyle(color: AppColors.textMuted, fontSize: 13)),
           items: [
-            const DropdownMenuItem(value: null, child: Text('All categories', style: TextStyle(color: AppColors.textPrimary))),
+            DropdownMenuItem(value: null, child: Text(s.allCategories, style: const TextStyle(color: AppColors.textPrimary))),
             ..._categories.map((c) => DropdownMenuItem(
               value: c.id,
               child: Text(c.name, style: const TextStyle(color: AppColors.textPrimary)),
@@ -739,7 +741,7 @@ class _ProductsScreenState extends State<ProductsScreen>
           children: [
             Icon(Icons.inventory_2_outlined, size: 64, color: AppColors.textMuted),
             SizedBox(height: 16),
-            Text('No products found', style: TextStyle(color: AppColors.textMuted, fontSize: 16)),
+            Text(s.noItemsFound, style: const TextStyle(color: AppColors.textMuted, fontSize: 16)),
           ],
         ),
       );
@@ -991,13 +993,13 @@ class _ProductsScreenState extends State<ProductsScreen>
               _actionBtn(
                 icon: Icons.edit_rounded,
                 color: AppColors.textSecondary,
-                tooltip: 'Edit category',
+                tooltip: s.editCategoryTooltip,
                 onTap: () => _showCategoryDialog(existing: cat),
               ),
               _actionBtn(
                 icon: Icons.delete_outline_rounded,
                 color: productCount > 0 ? AppColors.textMuted : AppColors.error,
-                tooltip: productCount > 0 ? 'Has $productCount product${productCount == 1 ? "" : "s"} — cannot delete' : 'Delete category',
+                tooltip: productCount > 0 ? s.hasProducts(productCount) : s.deleteCategoryTooltip,
                 onTap: () => _deleteCategory(cat),
               ),
             ],
@@ -1018,7 +1020,7 @@ class _ProductsScreenState extends State<ProductsScreen>
               const Icon(Icons.inventory_2_outlined, size: 13, color: AppColors.textMuted),
               const SizedBox(width: 4),
               Text(
-                '$productCount product${productCount == 1 ? "" : "s"}',
+                s.productCount(productCount),
                 style: const TextStyle(color: AppColors.textMuted, fontSize: 12),
               ),
             ],
