@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import '../services/locale_provider.dart';
 import 'package:intl/intl.dart';
 import '../models/order.dart';
 import '../theme/app_theme.dart';
@@ -49,7 +51,7 @@ class BillDialog extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'Receipt #${order.orderNumber}',
+                    s.receiptNumber(order.orderNumber),
                     style: const TextStyle(color: Colors.black87, fontWeight: FontWeight.w700, fontSize: 14),
                     overflow: TextOverflow.ellipsis,
                   ),
@@ -64,7 +66,7 @@ class BillDialog extends StatelessWidget {
                 const SizedBox(height: 4),
                 Row(
                   children: [
-                    const Text('Customer: ', style: TextStyle(color: Colors.black54, fontSize: 12)),
+                    Text('${s.customer}: ', style: const TextStyle(color: Colors.black54, fontSize: 12)),
                     Text(order.customerName!, style: const TextStyle(color: Colors.black87, fontSize: 12, fontWeight: FontWeight.w500)),
                   ],
                 ),
@@ -73,7 +75,7 @@ class BillDialog extends StatelessWidget {
                 const SizedBox(height: 4),
                 Row(
                   children: [
-                    const Text('Table: ', style: TextStyle(color: Colors.black54, fontSize: 12)),
+                    Text('${s.tableTitle}: ', style: const TextStyle(color: Colors.black54, fontSize: 12)),
                     Text(order.tableNumber!, style: const TextStyle(color: Colors.black87, fontSize: 12, fontWeight: FontWeight.w500)),
                   ],
                 ),
@@ -113,7 +115,7 @@ class BillDialog extends StatelessWidget {
               const SizedBox(height: 12),
               // Totals
               if ((order.discount) > 0) ...[
-                _totalRow('Discount', '-${currency.format(order.discount)}', color: Colors.green),
+                _totalRow(s.discount, '-${currency.format(order.discount)}', color: Colors.green),
                 const SizedBox(height: 6),
               ],
               const SizedBox(height: 10),
@@ -171,7 +173,7 @@ class BillDialog extends StatelessWidget {
                         side: const BorderSide(color: Colors.black12),
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                       ),
-                      child: const Text('Close'),
+                      child: Text(s.close),
                     ),
                   ),
                   const SizedBox(width: 12),
@@ -186,7 +188,7 @@ class BillDialog extends StatelessWidget {
                         );
                       },
                       icon: const Icon(Icons.print_rounded, size: 18),
-                      label: const Text('Print'),
+                      label: Text(s.print),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: AppColors.primary,
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
