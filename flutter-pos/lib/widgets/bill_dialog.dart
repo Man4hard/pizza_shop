@@ -23,10 +23,13 @@ class BillDialog extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               // Header
-              Image.asset(
-                'assets/images/receipt_final.png',
-                height: 72,
-                fit: BoxFit.contain,
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                child: Image.asset(
+                  'assets/images/receipt_final.png',
+                  height: 72,
+                  fit: BoxFit.contain,
+                ),
               ),
               const SizedBox(height: 4),
               const Text(
