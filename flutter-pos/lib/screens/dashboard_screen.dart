@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:intl/intl.dart';
+import 'package:provider/provider.dart';
 import '../models/sale_record.dart';
 import '../services/database_service.dart';
+import '../services/locale_provider.dart';
 import '../theme/app_theme.dart';
 import '../theme/breakpoints.dart';
 import '../widgets/stat_card.dart';
@@ -50,17 +52,18 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final s = context.watch<LocaleProvider>().strings;
     return Scaffold(
       backgroundColor: AppColors.background,
       body: _loading
           ? const Center(child: CircularProgressIndicator(color: AppColors.primary))
           : _error != null
-              ? _buildError()
-              : _buildContent(),
+              ? _buildError(s)
+              : _buildContent(s),
     );
   }
 
-  Widget _buildError() => Center(
+  Widget _buildError(s) => Center(
     child: Column(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
@@ -68,13 +71,13 @@ class _DashboardScreenState extends State<DashboardScreen> {
         const SizedBox(height: 16),
         Text(_error!, style: const TextStyle(color: AppColors.textSecondary)),
         const SizedBox(height: 16),
-        ElevatedButton(onPressed: _load, child: const Text('Retry')),
+        ElevatedButton(onPressed: _load, child: Text(s.retry)),
       ],
     ),
   );
 
-  Widget _buildContent() {
-    final s = _summary!;
+  Widget _buildContent(s) {
+    final summary = _summary!;
     final isWide = Breakpoints.isWide(MediaQuery.of(context).size.width);
     return RefreshIndicator(
       onRefresh: _load,
@@ -85,11 +88,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _buildHeader(),
+            _buildHeader(s),
             const SizedBox(height: 24),
-            _buildStatCards(s, columns: isWide ? 4 : 2),
+            _buildStatCards(summary, s, columns: isWide ? 4 : 2),
             const SizedBox(height: 28),
-            _buildOrderStatusRow(s),
+            _buildOrderStatusRow(summary, s),
             const SizedBox(height: 28),
             if (isWide) ...[
               Row(
@@ -101,7 +104,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          _buildSectionTitle('Sales Today by Hour'),
+                          _buildSectionTitle(s.salesTodayByHour),
                           const SizedBox(height: 16),
                           _buildHourlyChart(),
                         ],
@@ -115,9 +118,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          _buildSectionTitle('Top Selling Products'),
+                          _buildSectionTitle(s.topSellingProducts),
                           const SizedBox(height: 16),
-                          _buildTopProducts(),
+                          _buildTopProductsTable(s),
                         ],
                       ),
                     ),
@@ -125,15 +128,15 @@ class _DashboardScreenState extends State<DashboardScreen> {
               ),
             ] else ...[
               if (_hourlySales.isNotEmpty) ...[
-                _buildSectionTitle('Sales Today by Hour'),
+                _buildSectionTitle(s.salesTodayByHour),
                 const SizedBox(height: 16),
                 _buildHourlyChart(),
                 const SizedBox(height: 28),
               ],
               if (_topProducts.isNotEmpty) ...[
-                _buildSectionTitle('Top Selling Products'),
+                _buildSectionTitle(s.topSellingProducts),
                 const SizedBox(height: 16),
-                _buildTopProducts(),
+                _buildTopProductsTable(s),
               ],
             ],
           ],
@@ -142,113 +145,73 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 
-  Widget _buildHeader() => Row(
-    crossAxisAlignment: CrossAxisAlignment.center,
+  Widget _buildHeader(s) => Row(
     children: [
-      Expanded(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'Good ${_greeting()}, Chef!',
-              style: const TextStyle(
-                color: AppColors.textMuted,
-                fontSize: 14,
-              ),
-            ),
-            const SizedBox(height: 4),
-            Text(
-              DateFormat('EEEE, MMMM d').format(DateTime.now()),
-              style: const TextStyle(
-                color: AppColors.textPrimary,
-                fontSize: 22,
-                fontWeight: FontWeight.w700,
-              ),
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-            ),
-          ],
+      Text(
+        s.dashboard,
+        style: const TextStyle(
+          color: AppColors.textPrimary,
+          fontSize: 26,
+          fontWeight: FontWeight.w800,
         ),
       ),
-      const SizedBox(width: 12),
+      const Spacer(),
       IconButton(
         onPressed: _load,
         icon: const Icon(Icons.refresh_rounded, color: AppColors.textSecondary),
-        style: IconButton.styleFrom(
-          backgroundColor: AppColors.surface,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-        ),
+        tooltip: s.retry,
       ),
     ],
   );
 
-  String _greeting() {
-    final h = DateTime.now().hour;
-    if (h < 12) return 'Morning';
-    if (h < 17) return 'Afternoon';
-    return 'Evening';
-  }
-
-  Widget _buildStatCards(DashboardSummary s, {int columns = 2}) => GridView.count(
+  Widget _buildStatCards(DashboardSummary s, ls, {int columns = 2}) => GridView.count(
     crossAxisCount: columns,
-    crossAxisSpacing: 16,
-    mainAxisSpacing: 16,
-    childAspectRatio: columns == 4 ? 2.4 : 2.0,
     shrinkWrap: true,
     physics: const NeverScrollableScrollPhysics(),
+    crossAxisSpacing: 16,
+    mainAxisSpacing: 16,
+    childAspectRatio: 1.8,
     children: [
       StatCard(
-        title: "Today's Revenue",
-        value: _currency.format(s.totalSalesToday),
-        icon: Icons.attach_money_rounded,
+        title: ls.todaysRevenue,
+        value: _currency.format(s.totalRevenue),
+        icon: Icons.payments_rounded,
         iconColor: AppColors.success,
-        iconBg: AppColors.successBg,
+        iconBg: AppColors.success.withOpacity(0.12),
       ),
       StatCard(
-        title: 'Total Orders',
-        value: s.totalOrdersToday.toString(),
+        title: ls.totalOrders,
+        value: s.totalOrders.toString(),
         icon: Icons.receipt_long_rounded,
-        iconColor: AppColors.primary,
-        iconBg: const Color(0xFF2D0C0B),
-      ),
-      StatCard(
-        title: 'Avg Order Value',
-        value: _currency.format(s.averageOrderValue),
-        icon: Icons.trending_up_rounded,
         iconColor: AppColors.accent,
-        iconBg: AppColors.warningBg,
-      ),
-      StatCard(
-        title: 'Active Orders',
-        value: s.pendingOrders.toString(),
-        icon: Icons.pending_actions_rounded,
-        iconColor: AppColors.primaryLight,
-        iconBg: const Color(0xFF2D0C0B),
+        iconBg: AppColors.accent.withOpacity(0.12),
       ),
     ],
   );
 
-  Widget _buildOrderStatusRow(DashboardSummary s) => Container(
+  Widget _buildOrderStatusRow(DashboardSummary s, ls) => Container(
     padding: const EdgeInsets.all(20),
     decoration: BoxDecoration(
-      color: AppColors.surface,
+      color: AppColors.card,
       borderRadius: BorderRadius.circular(16),
       border: Border.all(color: AppColors.cardBorder),
     ),
     child: Row(
+      mainAxisAlignment: MainAxisAlignment.spaceAround,
       children: [
-        _statusPill('Pending', s.pendingOrders, AppColors.warning),
-        const Spacer(),
-        _statusPill('Completed', s.completedOrders, AppColors.success),
-        const Spacer(),
-        _statusPill('Cancelled', s.cancelledOrders, AppColors.error),
+        _statusPill(ls.pending, s.pendingOrders, AppColors.warning),
+        _statusPill(ls.completed, s.completedOrders, AppColors.success),
+        _statusPill(ls.cancelled, s.cancelledOrders, AppColors.error),
       ],
     ),
   );
 
   Widget _statusPill(String label, int count, Color color) => Column(
     children: [
-      Text(count.toString(), style: TextStyle(color: color, fontSize: 24, fontWeight: FontWeight.w700)),
+      Text(
+        count.toString(),
+        style: TextStyle(color: color, fontSize: 22, fontWeight: FontWeight.w800),
+      ),
       const SizedBox(height: 4),
       Text(label, style: const TextStyle(color: AppColors.textMuted, fontSize: 12)),
     ],
@@ -256,64 +219,57 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
   Widget _buildSectionTitle(String title) => Text(
     title,
-    style: const TextStyle(
-      color: AppColors.textPrimary,
-      fontSize: 18,
-      fontWeight: FontWeight.w700,
-    ),
+    style: const TextStyle(color: AppColors.textPrimary, fontSize: 16, fontWeight: FontWeight.w700),
   );
 
-  Widget _buildHourlyChart() => Container(
-    height: 180,
-    padding: const EdgeInsets.all(20),
-    decoration: BoxDecoration(
-      color: AppColors.surface,
-      borderRadius: BorderRadius.circular(16),
-      border: Border.all(color: AppColors.cardBorder),
-    ),
-    child: BarChart(
-      BarChartData(
-        backgroundColor: Colors.transparent,
-        gridData: FlGridData(
-          show: true,
-          horizontalInterval: 1,
-          getDrawingHorizontalLine: (_) => const FlLine(color: AppColors.divider, strokeWidth: 1),
-          drawVerticalLine: false,
-        ),
-        borderData: FlBorderData(show: false),
-        titlesData: FlTitlesData(
-          bottomTitles: AxisTitles(
-            sideTitles: SideTitles(
-              showTitles: true,
-              getTitlesWidget: (val, _) {
-                final h = val.toInt();
-                if (h % 3 != 0) return const SizedBox.shrink();
-                return Text('${h}h', style: const TextStyle(color: AppColors.textMuted, fontSize: 11));
-              },
-            ),
-          ),
-          leftTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
-          topTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
-          rightTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
-        ),
-        barGroups: _hourlySales.map((h) => BarChartGroupData(
-          x: h.hour,
-          barRods: [
-            BarChartRodData(
-              toY: h.sales,
-              color: AppColors.primary,
-              width: 10,
-              borderRadius: const BorderRadius.vertical(top: Radius.circular(4)),
-            ),
-          ],
-        )).toList(),
+  Widget _buildHourlyChart() {
+    final maxY = _hourlySales.map((h) => h.totalSales).fold<double>(0, (a, b) => a > b ? a : b);
+    return Container(
+      height: 200,
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: AppColors.card,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AppColors.cardBorder),
       ),
-    ),
-  );
+      child: BarChart(
+        BarChartData(
+          maxY: maxY * 1.2,
+          barGroups: _hourlySales.map((h) => BarChartGroupData(
+            x: h.hour,
+            barRods: [
+              BarChartRodData(
+                toY: h.totalSales,
+                color: AppColors.primary,
+                width: 8,
+                borderRadius: const BorderRadius.vertical(top: Radius.circular(4)),
+              ),
+            ],
+          )).toList(),
+          titlesData: FlTitlesData(
+            bottomTitles: AxisTitles(
+              sideTitles: SideTitles(
+                showTitles: true,
+                getTitlesWidget: (v, _) => Text(
+                  '${v.toInt()}h',
+                  style: const TextStyle(color: AppColors.textMuted, fontSize: 10),
+                ),
+              ),
+            ),
+            leftTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+            topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+            rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+          ),
+          gridData: const FlGridData(show: false),
+          borderData: FlBorderData(show: false),
+        ),
+      ),
+    );
+  }
 
-  Widget _buildTopProducts() => Container(
+  Widget _buildTopProductsTable(s) => Container(
     decoration: BoxDecoration(
-      color: AppColors.surface,
+      color: AppColors.card,
       borderRadius: BorderRadius.circular(16),
       border: Border.all(color: AppColors.cardBorder),
     ),
@@ -350,16 +306,14 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   const SizedBox(width: 12),
                   Expanded(
                     child: Text(p.productName,
-                        style: const TextStyle(
-                            color: AppColors.textPrimary, fontWeight: FontWeight.w500)),
+                        style: const TextStyle(color: AppColors.textPrimary, fontWeight: FontWeight.w500)),
                   ),
                   Text('×${p.quantitySold}',
                       style: const TextStyle(color: AppColors.textMuted, fontSize: 13)),
                   const SizedBox(width: 12),
                   Text(
                     _currency.format(p.revenue),
-                    style: const TextStyle(
-                        color: AppColors.success, fontWeight: FontWeight.w600),
+                    style: const TextStyle(color: AppColors.success, fontWeight: FontWeight.w600),
                   ),
                 ],
               ),
