@@ -615,9 +615,6 @@ class _PosScreenState extends State<PosScreen> {
     ),
     child: Column(
       children: [
-        _summaryRow('Subtotal', cart.subtotal),
-        const SizedBox(height: 8),
-        _summaryRow('Tax (10%)', cart.tax),
         const Divider(height: 16),
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,

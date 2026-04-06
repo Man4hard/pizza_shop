@@ -366,8 +366,8 @@ class DatabaseService {
       }
     }
 
-    final tax = subtotal * 0.10;
-    final total = subtotal + tax;
+    final tax = 0.0;
+    final total = subtotal;
     final orderNumber = 'ORD-${now.millisecondsSinceEpoch}';
 
     final orderId = await database.insert('orders', {

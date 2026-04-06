@@ -112,12 +112,9 @@ class BillDialog extends StatelessWidget {
               _dottedDivider(),
               const SizedBox(height: 12),
               // Totals
-              _totalRow('Subtotal', currency.format(order.subtotal)),
-              const SizedBox(height: 6),
-              _totalRow('Tax (10%)', currency.format(order.tax)),
               if ((order.discount) > 0) ...[
-                const SizedBox(height: 6),
                 _totalRow('Discount', '-${currency.format(order.discount)}', color: Colors.green),
+                const SizedBox(height: 6),
               ],
               const SizedBox(height: 10),
               Container(

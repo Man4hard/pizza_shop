@@ -18,8 +18,8 @@ class CartProvider extends ChangeNotifier {
   double get subtotal =>
       _items.fold(0, (sum, item) => sum + item.subtotal);
 
-  double get tax => subtotal * 0.1; // 10% tax
-  double get total => subtotal + tax;
+  double get tax => 0;
+  double get total => subtotal;
 
   void setCustomerInfo({String? name, String? table, String? notes}) {
     _customerName = name;
