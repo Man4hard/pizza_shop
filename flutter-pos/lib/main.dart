@@ -42,7 +42,7 @@ class SlicePosApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       theme: locale.theme,
       builder: (context, child) => Directionality(
-        textDirection: locale.textDirection,
+        textDirection: TextDirection.ltr,
         child: child!,
       ),
       home: const HomeShell(),
