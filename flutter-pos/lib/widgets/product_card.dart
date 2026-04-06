@@ -30,6 +30,7 @@ String? _productImage(String name) {
   if (n.contains('bbq'))           return 'assets/images/bbq_pizza.jpg';
   if (n.contains('tandoori'))      return 'assets/images/tandoori_pizza.jpg';
   if (n.contains('ahmad special')) return 'assets/images/ahmad_special_pizza.jpg';
+  if (n.contains('hot') && n.contains('spicy')) return 'assets/images/hot_spicy_pizza.jpg';
   return null;
 }
 
