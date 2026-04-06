@@ -25,12 +25,8 @@ Color _categoryColor(String categoryName) {
 /// Returns a local asset image path for a product name, or null if no image.
 String? _productImage(String name) {
   final n = name.toLowerCase();
-  if (n.contains('chicken tikka')) return 'assets/images/chicken_tikka_pizza.jpg';
-  if (n.contains('fajita'))        return 'assets/images/chicken_fajita_pizza.jpg';
-  if (n.contains('bbq'))           return 'assets/images/bbq_pizza.jpg';
-  if (n.contains('tandoori'))      return 'assets/images/tandoori_pizza.jpg';
-  if (n.contains('ahmad special')) return 'assets/images/ahmad_special_pizza.jpg';
-  if (n.contains('hot') && n.contains('spicy')) return 'assets/images/hot_spicy_pizza.jpg';
+  if (n.contains('chicken tikka'))  return 'assets/images/chicken_tikka_pizza.jpg';
+  if (n.contains('malai boti'))     return 'assets/images/malai_boti_pizza.jpg';
   return null;
 }
 
