@@ -21,8 +21,9 @@ class DatabaseService {
 
     return openDatabase(
       path,
-      version: 1,
+      version: 2,
       onCreate: _onCreate,
+      onUpgrade: _onUpgrade,
     );
   }
 
@@ -44,6 +45,7 @@ class DatabaseService {
         description TEXT,
         price REAL NOT NULL,
         available INTEGER NOT NULL DEFAULT 1,
+        image_url TEXT,
         created_at TEXT NOT NULL,
         FOREIGN KEY (category_id) REFERENCES categories(id)
       )
@@ -96,6 +98,12 @@ class DatabaseService {
     ''');
 
     await _seedData(db);
+  }
+
+  static Future<void> _onUpgrade(Database db, int oldVersion, int newVersion) async {
+    if (oldVersion < 2) {
+      await db.execute('ALTER TABLE products ADD COLUMN image_url TEXT');
+    }
   }
 
   static Future<void> _seedData(Database db) async {
@@ -295,6 +303,7 @@ class DatabaseService {
       'description': data['description'],
       'price': data['price'],
       'available': (data['available'] ?? true) ? 1 : 0,
+      'image_url': data['imageUrl'],
       'created_at': now,
     });
     final rows = await database.rawQuery(
@@ -310,6 +319,7 @@ class DatabaseService {
       categoryId: r['category_id'] as int,
       categoryName: r['category_name'] as String?,
       available: (r['available'] as int) == 1,
+      imageUrl: r['image_url'] as String?,
       createdAt: DateTime.parse(r['created_at'] as String),
     );
   }
@@ -322,6 +332,7 @@ class DatabaseService {
     if (data.containsKey('price'))       update['price']       = data['price'];
     if (data.containsKey('categoryId'))  update['category_id'] = data['categoryId'];
     if (data.containsKey('available'))   update['available']   = data['available'] ? 1 : 0;
+    if (data.containsKey('imageUrl'))    update['image_url']   = data['imageUrl'];
 
     await database.update('products', update, where: 'id = ?', whereArgs: [id]);
     final rows = await database.rawQuery(
@@ -337,6 +348,7 @@ class DatabaseService {
       categoryId: r['category_id'] as int,
       categoryName: r['category_name'] as String?,
       available: (r['available'] as int) == 1,
+      imageUrl: r['image_url'] as String?,
       createdAt: DateTime.parse(r['created_at'] as String),
     );
   }
