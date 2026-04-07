@@ -9,15 +9,14 @@ class LocaleProvider extends ChangeNotifier {
   bool get isUrdu => _isUrdu;
   AppStrings get strings => AppStrings(isUrdu: _isUrdu);
 
+  TextStyle? get urduFontStyle =>
+      _isUrdu ? GoogleFonts.notoNastaliqUrdu() : null;
+
   ThemeData get theme {
     if (_isUrdu) {
-      final urduFont = GoogleFonts.notoNastaliqUrdu();
       final urduTextTheme =
           GoogleFonts.notoNastaliqUrduTextTheme(AppTheme.dark.textTheme);
-      return AppTheme.dark.copyWith(
-        fontFamily: urduFont.fontFamily,
-        textTheme: urduTextTheme,
-      );
+      return AppTheme.dark.copyWith(textTheme: urduTextTheme);
     }
     return AppTheme.dark;
   }
