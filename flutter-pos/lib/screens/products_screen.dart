@@ -577,6 +577,7 @@ class _ProductsScreenState extends State<ProductsScreen>
 
   @override
   Widget build(BuildContext context) {
+    context.watch<LocaleProvider>();
     final isProductsTab = _tabs.index == 0;
     return Scaffold(
       backgroundColor: AppColors.background,
