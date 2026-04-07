@@ -72,7 +72,6 @@ class _HomeShellState extends State<HomeShell> {
   Widget build(BuildContext context) {
     final width = MediaQuery.of(context).size.width;
     if (Breakpoints.isDesktop(width)) return _buildDesktopLayout();
-    if (Breakpoints.isTablet(width)) return _buildTabletLayout();
     return _buildPhoneLayout();
   }
 
@@ -256,85 +255,6 @@ class _HomeShellState extends State<HomeShell> {
             ],
           ),
         ),
-      ),
-    );
-  }
-
-  // ── Tablet ───────────────────────────────────────────────────────
-  Widget _buildTabletLayout() {
-    final locale = context.watch<LocaleProvider>();
-    final s = locale.strings;
-    final navItems = _navItems(s);
-    return Scaffold(
-      backgroundColor: AppColors.background,
-      body: Row(
-        children: [
-          Container(
-            color: AppColors.surface,
-            child: Column(
-              children: [
-                Expanded(
-                  child: NavigationRail(
-                    backgroundColor: AppColors.surface,
-                    selectedIndex: _selectedIndex,
-                    onDestinationSelected: (i) =>
-                        setState(() => _selectedIndex = i),
-                    selectedIconTheme:
-                        const IconThemeData(color: AppColors.primary),
-                    selectedLabelTextStyle: const TextStyle(
-                        color: AppColors.primary,
-                        fontWeight: FontWeight.w600),
-                    unselectedIconTheme:
-                        const IconThemeData(color: AppColors.textSecondary),
-                    unselectedLabelTextStyle:
-                        const TextStyle(color: AppColors.textSecondary),
-                    labelType: NavigationRailLabelType.all,
-                    leading: Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 16),
-                      child: Image.asset('assets/images/logo.png',
-                          height: 40, fit: BoxFit.contain),
-                    ),
-                    destinations: navItems
-                        .map((item) => NavigationRailDestination(
-                              icon: Icon(item.icon),
-                              selectedIcon: Icon(item.activeIcon),
-                              label: Text(item.shortLabel),
-                              padding:
-                                  const EdgeInsets.symmetric(vertical: 2),
-                            ))
-                        .toList(),
-                  ),
-                ),
-                Padding(
-                  padding: const EdgeInsets.all(8),
-                  child: IconButton(
-                    onPressed: locale.toggle,
-                    tooltip: s.switchLang,
-                    icon: const Icon(Icons.language_rounded,
-                        color: AppColors.textSecondary),
-                  ),
-                ),
-                const Padding(
-                  padding: EdgeInsets.only(bottom: 10),
-                  child: RotatedBox(
-                    quarterTurns: 3,
-                    child: Text(
-                      'Dev: TAYYAB',
-                      style: TextStyle(
-                        color: AppColors.textMuted,
-                        fontSize: 9,
-                        letterSpacing: 0.4,
-                      ),
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 8),
-              ],
-            ),
-          ),
-          Container(width: 1, color: AppColors.divider),
-          Expanded(child: _pages[_selectedIndex]),
-        ],
       ),
     );
   }
