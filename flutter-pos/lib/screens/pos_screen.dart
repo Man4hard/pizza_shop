@@ -221,8 +221,8 @@ class _PosScreenState extends State<PosScreen> {
   Widget _buildMobileLayout() => Consumer<CartProvider>(
     builder: (_, cart, __) => Column(
       children: [
-        _buildMobileCartBar(cart),
         Expanded(child: _buildProductsPane()),
+        _buildMobileCartBar(cart),
       ],
     ),
   );
