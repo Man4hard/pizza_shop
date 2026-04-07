@@ -5,7 +5,6 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 import 'package:sqflite/sqflite.dart';
 import 'services/cart_provider.dart';
-import 'services/locale_provider.dart';
 import 'screens/pos_screen.dart';
 import 'screens/orders_screen.dart';
 import 'screens/sales_screen.dart';
@@ -21,11 +20,8 @@ void main() async {
     databaseFactory = databaseFactoryFfi;
   }
   runApp(
-    MultiProvider(
-      providers: [
-        ChangeNotifierProvider(create: (_) => CartProvider()),
-        ChangeNotifierProvider(create: (_) => LocaleProvider()),
-      ],
+    ChangeNotifierProvider(
+      create: (_) => CartProvider(),
       child: const SlicePosApp(),
     ),
   );
@@ -36,22 +32,12 @@ class SlicePosApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final locale = context.watch<LocaleProvider>();
     return MaterialApp(
       title: 'Ahmed Fast Food - POS',
       debugShowCheckedModeBanner: false,
-      theme: locale.theme,
-      builder: (context, child) {
-        final content = Directionality(
-          textDirection: TextDirection.ltr,
-          child: child!,
-        );
-        final fontStyle = locale.urduFontStyle;
-        if (fontStyle != null) {
-          return DefaultTextStyle.merge(style: fontStyle, child: content);
-        }
-        return content;
-      },
+      theme: ThemeData.dark().copyWith(
+        colorScheme: ColorScheme.dark(primary: AppColors.primary),
+      ),
       home: const HomeShell(),
     );
   }
@@ -75,25 +61,25 @@ class _HomeShellState extends State<HomeShell> {
     ProductsScreen(),
   ];
 
+  static const _navItems = [
+    _NavItem(Icons.point_of_sale_outlined, Icons.point_of_sale_rounded,
+        'POS', 'Point of Sale'),
+    _NavItem(Icons.receipt_long_outlined, Icons.receipt_long_rounded,
+        'Orders', 'Orders'),
+    _NavItem(Icons.bar_chart_outlined, Icons.bar_chart_rounded,
+        'Sales', 'Sales History'),
+    _NavItem(Icons.dashboard_outlined, Icons.dashboard_rounded,
+        'Dashboard', 'Dashboard'),
+    _NavItem(Icons.inventory_2_outlined, Icons.inventory_2_rounded,
+        'Products', 'Manage Products'),
+  ];
+
   @override
   Widget build(BuildContext context) {
     final width = MediaQuery.of(context).size.width;
     if (Breakpoints.isDesktop(width)) return _buildDesktopLayout();
     return _buildPhoneLayout();
   }
-
-  List<_NavItem> _navItems(s) => [
-        _NavItem(Icons.point_of_sale_outlined, Icons.point_of_sale_rounded,
-            s.navPos, s.navPosLong),
-        _NavItem(Icons.receipt_long_outlined, Icons.receipt_long_rounded,
-            s.navOrders, s.navOrders),
-        _NavItem(Icons.bar_chart_outlined, Icons.bar_chart_rounded, s.navSales,
-            s.navSalesLong),
-        _NavItem(Icons.dashboard_outlined, Icons.dashboard_rounded,
-            s.navDashboard, s.navDashboard),
-        _NavItem(Icons.inventory_2_outlined, Icons.inventory_2_rounded,
-            s.navProducts, s.navProductsLong),
-      ];
 
   // ── Desktop ─────────────────────────────────────────────────────
   Widget _buildDesktopLayout() => Scaffold(
@@ -108,9 +94,6 @@ class _HomeShellState extends State<HomeShell> {
       );
 
   Widget _buildSidebar() {
-    final locale = context.watch<LocaleProvider>();
-    final s = locale.strings;
-    final navItems = _navItems(s);
     return Container(
       width: 240,
       color: AppColors.surface,
@@ -124,15 +107,15 @@ class _HomeShellState extends State<HomeShell> {
                 height: 48, fit: BoxFit.contain),
           ),
           const SizedBox(height: 28),
-          _sidebarItem(0, navItems),
-          _sidebarItem(1, navItems),
-          _sidebarItem(2, navItems),
-          _sidebarItem(3, navItems),
+          _sidebarItem(0),
+          _sidebarItem(1),
+          _sidebarItem(2),
+          _sidebarItem(3),
           const Padding(
             padding: EdgeInsets.symmetric(horizontal: 20, vertical: 10),
             child: Divider(color: AppColors.divider, height: 1),
           ),
-          _sidebarItem(4, navItems),
+          _sidebarItem(4),
           const Spacer(),
           Consumer<CartProvider>(
             builder: (_, cart, __) => cart.items.isNotEmpty
@@ -152,7 +135,7 @@ class _HomeShellState extends State<HomeShell> {
                         const SizedBox(width: 8),
                         Expanded(
                           child: Text(
-                            '${cart.items.length} ${s.itemsLabel}',
+                            '${cart.items.length} items',
                             style: const TextStyle(
                                 color: AppColors.primary,
                                 fontWeight: FontWeight.w600,
@@ -164,17 +147,18 @@ class _HomeShellState extends State<HomeShell> {
                   )
                 : const SizedBox.shrink(),
           ),
-          _buildLangToggle(locale),
           const SizedBox(height: 10),
           const Padding(
             padding: EdgeInsets.only(bottom: 14),
-            child: Text(
-              'Developed by TAYYAB',
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                color: AppColors.textMuted,
-                fontSize: 10,
-                letterSpacing: 0.5,
+            child: Center(
+              child: Text(
+                'Developed by TAYYAB',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  color: AppColors.textMuted,
+                  fontSize: 10,
+                  letterSpacing: 0.5,
+                ),
               ),
             ),
           ),
@@ -183,43 +167,8 @@ class _HomeShellState extends State<HomeShell> {
     );
   }
 
-  Widget _buildLangToggle(LocaleProvider locale) => Padding(
-        padding: const EdgeInsets.fromLTRB(16, 0, 16, 0),
-        child: InkWell(
-          onTap: locale.toggle,
-          borderRadius: BorderRadius.circular(12),
-          child: Container(
-            padding:
-                const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-            decoration: BoxDecoration(
-              color: AppColors.surfaceElevated,
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: AppColors.divider),
-            ),
-            child: Row(
-              children: [
-                const Icon(Icons.language_rounded,
-                    color: AppColors.textSecondary, size: 18),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: Text(
-                    locale.strings.switchLang,
-                    style: const TextStyle(
-                        color: AppColors.textSecondary,
-                        fontSize: 13,
-                        fontWeight: FontWeight.w500),
-                  ),
-                ),
-                const Icon(Icons.swap_horiz_rounded,
-                    color: AppColors.textMuted, size: 16),
-              ],
-            ),
-          ),
-        ),
-      );
-
-  Widget _sidebarItem(int index, List<_NavItem> navItems) {
-    final item = navItems[index];
+  Widget _sidebarItem(int index) {
+    final item = _navItems[index];
     final selected = _selectedIndex == index;
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 2),
@@ -268,9 +217,6 @@ class _HomeShellState extends State<HomeShell> {
 
   // ── Phone ────────────────────────────────────────────────────────
   Widget _buildPhoneLayout() {
-    final locale = context.watch<LocaleProvider>();
-    final s = locale.strings;
-    final navItems = _navItems(s);
     return Scaffold(
       backgroundColor: AppColors.background,
       body: _pages[_selectedIndex],
@@ -280,38 +226,21 @@ class _HomeShellState extends State<HomeShell> {
           border: Border(top: BorderSide(color: AppColors.divider)),
         ),
         child: SafeArea(
-          child: Row(
-            children: [
-              Expanded(
-                child: NavigationBar(
-                  backgroundColor: Colors.transparent,
-                  elevation: 0,
-                  selectedIndex: _selectedIndex,
-                  onDestinationSelected: (i) =>
-                      setState(() => _selectedIndex = i),
-                  indicatorColor: AppColors.primary.withOpacity(0.15),
-                  labelBehavior:
-                      NavigationDestinationLabelBehavior.onlyShowSelected,
-                  destinations: navItems
-                      .map((item) => NavigationDestination(
-                            icon: Icon(item.icon),
-                            selectedIcon: Icon(item.activeIcon,
-                                color: AppColors.primary),
-                            label: item.shortLabel,
-                          ))
-                      .toList(),
-                ),
-              ),
-              Padding(
-                padding: const EdgeInsets.only(right: 8),
-                child: IconButton(
-                  onPressed: locale.toggle,
-                  tooltip: s.switchLang,
-                  icon: const Icon(Icons.language_rounded,
-                      color: AppColors.textSecondary, size: 22),
-                ),
-              ),
-            ],
+          child: NavigationBar(
+            backgroundColor: Colors.transparent,
+            elevation: 0,
+            selectedIndex: _selectedIndex,
+            onDestinationSelected: (i) => setState(() => _selectedIndex = i),
+            indicatorColor: AppColors.primary.withOpacity(0.15),
+            labelBehavior: NavigationDestinationLabelBehavior.onlyShowSelected,
+            destinations: _navItems
+                .map((item) => NavigationDestination(
+                      icon: Icon(item.icon),
+                      selectedIcon:
+                          Icon(item.activeIcon, color: AppColors.primary),
+                      label: item.shortLabel,
+                    ))
+                .toList(),
           ),
         ),
       ),
