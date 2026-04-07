@@ -200,6 +200,7 @@ class _PosScreenState extends State<PosScreen> {
 
   @override
   Widget build(BuildContext context) {
+    context.watch<LocaleProvider>();
     final isMobile = Breakpoints.isPhone(MediaQuery.of(context).size.width);
     return Scaffold(
       backgroundColor: AppColors.background,
