@@ -3,7 +3,6 @@ import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import '../models/order.dart';
 import '../services/database_service.dart';
-import '../services/locale_provider.dart';
 import '../theme/app_theme.dart';
 import '../theme/breakpoints.dart';
 import '../widgets/bill_dialog.dart';
@@ -65,34 +64,32 @@ class _OrdersScreenState extends State<OrdersScreen>
       }
     } catch (e) {
       if (mounted) {
-        final s = context.read<LocaleProvider>().strings;
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('${s.errorStr}: $e'), backgroundColor: AppColors.error),
+          SnackBar(content: Text('${'Error'}: $e'), backgroundColor: AppColors.error),
         );
       }
     }
   }
 
   Future<void> _cancelOrder(Order order) async {
-    final s = context.read<LocaleProvider>().strings;
     final confirm = await showDialog<bool>(
       context: context,
       builder: (_) => AlertDialog(
         backgroundColor: AppColors.surface,
-        title: Text(s.cancelOrder, style: const TextStyle(color: AppColors.textPrimary)),
+        title: Text('Cancel Order', style: const TextStyle(color: AppColors.textPrimary)),
         content: Text(
-          s.cancelOrderQuestion(order.orderNumber),
+          'Cancel order $a?',
           style: const TextStyle(color: AppColors.textSecondary),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(_, false),
-            child: Text(s.no, style: const TextStyle(color: AppColors.textSecondary)),
+            child: Text('No', style: const TextStyle(color: AppColors.textSecondary)),
           ),
           ElevatedButton(
             onPressed: () => Navigator.pop(_, true),
             style: ElevatedButton.styleFrom(backgroundColor: AppColors.error),
-            child: Text(s.yesCancelIt),
+            child: Text('Yes, Cancel'),
           ),
         ],
       ),
@@ -104,7 +101,7 @@ class _OrdersScreenState extends State<OrdersScreen>
       } catch (e) {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('${s.errorStr}: $e'), backgroundColor: AppColors.error),
+            SnackBar(content: Text('${'Error'}: $e'), backgroundColor: AppColors.error),
           );
         }
       }
@@ -113,7 +110,6 @@ class _OrdersScreenState extends State<OrdersScreen>
 
   @override
   Widget build(BuildContext context) {
-    final s = context.watch<LocaleProvider>().strings;
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: PreferredSize(
@@ -128,7 +124,7 @@ class _OrdersScreenState extends State<OrdersScreen>
                   child: Row(
                     children: [
                       Text(
-                        s.orders,
+                        'Orders',
                         style: const TextStyle(
                           color: AppColors.textPrimary,
                           fontSize: 24,
@@ -149,9 +145,9 @@ class _OrdersScreenState extends State<OrdersScreen>
                   labelColor: AppColors.primary,
                   unselectedLabelColor: AppColors.textSecondary,
                   tabs: [
-                    Tab(text: s.pending),
-                    Tab(text: s.completed),
-                    Tab(text: s.cancelled),
+                    Tab(text: 'Pending'),
+                    Tab(text: 'Completed'),
+                    Tab(text: 'Cancelled'),
                   ],
                 ),
               ],
@@ -165,7 +161,7 @@ class _OrdersScreenState extends State<OrdersScreen>
               ? Center(child: Text(_error!, style: const TextStyle(color: AppColors.error)))
               : _orders.isEmpty
                   ? Center(
-                      child: Text(s.noOrdersFound,
+                      child: Text('No orders found',
                           style: const TextStyle(color: AppColors.textMuted, fontSize: 16)))
                   : LayoutBuilder(
                       builder: (_, constraints) {
@@ -197,7 +193,7 @@ class _OrdersScreenState extends State<OrdersScreen>
   Widget _buildOrderCard(Order order, s) => Container(
     padding: const EdgeInsets.all(16),
     decoration: BoxDecoration(
-      color: AppColors.card,
+      color: AppColor'Card',
       borderRadius: BorderRadius.circular(16),
       border: Border.all(color: AppColors.cardBorder),
     ),
@@ -262,14 +258,14 @@ class _OrdersScreenState extends State<OrdersScreen>
               TextButton.icon(
                 onPressed: () => _viewBill(order),
                 icon: const Icon(Icons.receipt_outlined, size: 16),
-                label: Text(s.viewBill),
+                label: Text('View Bill'),
                 style: TextButton.styleFrom(foregroundColor: AppColors.accent),
               ),
             if (order.status == 'pending')
               TextButton.icon(
                 onPressed: () => _cancelOrder(order),
                 icon: const Icon(Icons.cancel_outlined, size: 16),
-                label: Text(s.cancel),
+                label: Text('Cancel'),
                 style: TextButton.styleFrom(foregroundColor: AppColors.error),
               ),
           ],
@@ -280,9 +276,9 @@ class _OrdersScreenState extends State<OrdersScreen>
 
   String _statusLabel(String status, s) {
     switch (status) {
-      case 'completed': return s.completed;
-      case 'cancelled': return s.cancelled;
-      default: return s.pending;
+      case 'completed': return 'Completed';
+      case 'cancelled': return 'Cancelled';
+      default: return 'Pending';
     }
   }
 
