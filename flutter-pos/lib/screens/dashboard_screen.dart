@@ -1,10 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:intl/intl.dart';
-import 'package:provider/provider.dart';
 import '../models/sale_record.dart';
 import '../services/database_service.dart';
-import '../services/locale_provider.dart';
 import '../theme/app_theme.dart';
 import '../theme/breakpoints.dart';
 import '../widgets/stat_card.dart';
@@ -52,18 +50,17 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final s = context.watch<LocaleProvider>().strings;
     return Scaffold(
       backgroundColor: AppColors.background,
       body: _loading
           ? const Center(child: CircularProgressIndicator(color: AppColors.primary))
           : _error != null
-              ? _buildError(s)
-              : _buildContent(s),
+              ? _buildError()
+              : _buildContent(),
     );
   }
 
-  Widget _buildError(s) => Center(
+  Widget _buildError() => Center(
     child: Column(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
@@ -71,13 +68,13 @@ class _DashboardScreenState extends State<DashboardScreen> {
         const SizedBox(height: 16),
         Text(_error!, style: const TextStyle(color: AppColors.textSecondary)),
         const SizedBox(height: 16),
-        ElevatedButton(onPressed: _load, child: Text(s.retry)),
+        ElevatedButton(onPressed: _load, child: const Text('Retry')),
       ],
     ),
   );
 
-  Widget _buildContent(s) {
-    final summary = _summary!;
+  Widget _buildContent() {
+    final s = _summary!;
     final isWide = Breakpoints.isWide(MediaQuery.of(context).size.width);
     return RefreshIndicator(
       onRefresh: _load,
@@ -88,11 +85,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _buildHeader(s),
+            _buildHeader(),
             const SizedBox(height: 24),
-            _buildStatCards(summary, s, columns: isWide ? 4 : 2),
+            _buildStatCards(s, columns: isWide ? 4 : 2),
             const SizedBox(height: 28),
-            _buildOrderStatusRow(summary, s),
+            _buildOrderStatusRow(s),
             const SizedBox(height: 28),
             if (isWide) ...[
               Row(
@@ -104,7 +101,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          _buildSectionTitle(s.salesTodayByHour),
+                          _buildSectionTitle('Sales Today by Hour'),
                           const SizedBox(height: 16),
                           _buildHourlyChart(),
                         ],
@@ -118,9 +115,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          _buildSectionTitle(s.topSellingProducts),
+                          _buildSectionTitle('Top Selling Products'),
                           const SizedBox(height: 16),
-                          _buildTopProductsTable(s),
+                          _buildTopProductsTable(),
                         ],
                       ),
                     ),
@@ -128,15 +125,15 @@ class _DashboardScreenState extends State<DashboardScreen> {
               ),
             ] else ...[
               if (_hourlySales.isNotEmpty) ...[
-                _buildSectionTitle(s.salesTodayByHour),
+                _buildSectionTitle('Sales Today by Hour'),
                 const SizedBox(height: 16),
                 _buildHourlyChart(),
                 const SizedBox(height: 28),
               ],
               if (_topProducts.isNotEmpty) ...[
-                _buildSectionTitle(s.topSellingProducts),
+                _buildSectionTitle('Top Selling Products'),
                 const SizedBox(height: 16),
-                _buildTopProductsTable(s),
+                _buildTopProductsTable(),
               ],
             ],
           ],
@@ -145,11 +142,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 
-  Widget _buildHeader(s) => Row(
+  Widget _buildHeader() => Row(
     children: [
-      Text(
-        s.dashboard,
-        style: const TextStyle(
+      const Text(
+        'Dashboard',
+        style: TextStyle(
           color: AppColors.textPrimary,
           fontSize: 26,
           fontWeight: FontWeight.w800,
@@ -159,12 +156,12 @@ class _DashboardScreenState extends State<DashboardScreen> {
       IconButton(
         onPressed: _load,
         icon: const Icon(Icons.refresh_rounded, color: AppColors.textSecondary),
-        tooltip: s.retry,
+        tooltip: 'Retry',
       ),
     ],
   );
 
-  Widget _buildStatCards(DashboardSummary s, ls, {int columns = 2}) => GridView.count(
+  Widget _buildStatCards(DashboardSummary s, {int columns = 2}) => GridView.count(
     crossAxisCount: columns,
     shrinkWrap: true,
     physics: const NeverScrollableScrollPhysics(),
@@ -173,14 +170,14 @@ class _DashboardScreenState extends State<DashboardScreen> {
     childAspectRatio: 1.8,
     children: [
       StatCard(
-        title: ls.todaysRevenue,
+        title: "Today's Revenue",
         value: _currency.format(s.totalSalesToday),
         icon: Icons.payments_rounded,
         iconColor: AppColors.success,
         iconBg: AppColors.success.withOpacity(0.12),
       ),
       StatCard(
-        title: ls.totalOrdersToday,
+        title: 'Total Orders',
         value: s.totalOrdersToday.toString(),
         icon: Icons.receipt_long_rounded,
         iconColor: AppColors.accent,
@@ -189,7 +186,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
     ],
   );
 
-  Widget _buildOrderStatusRow(DashboardSummary s, ls) => Container(
+  Widget _buildOrderStatusRow(DashboardSummary s) => Container(
     padding: const EdgeInsets.all(20),
     decoration: BoxDecoration(
       color: AppColors.card,
@@ -199,9 +196,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
     child: Row(
       mainAxisAlignment: MainAxisAlignment.spaceAround,
       children: [
-        _statusPill(ls.pending, s.pendingOrders, AppColors.warning),
-        _statusPill(ls.completed, s.completedOrders, AppColors.success),
-        _statusPill(ls.cancelled, s.cancelledOrders, AppColors.error),
+        _statusPill('Pending', s.pendingOrders, AppColors.warning),
+        _statusPill('Completed', s.completedOrders, AppColors.success),
+        _statusPill('Cancelled', s.cancelledOrders, AppColors.error),
       ],
     ),
   );
@@ -267,7 +264,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 
-  Widget _buildTopProductsTable(s) => Container(
+  Widget _buildTopProductsTable() => Container(
     decoration: BoxDecoration(
       color: AppColors.card,
       borderRadius: BorderRadius.circular(16),
