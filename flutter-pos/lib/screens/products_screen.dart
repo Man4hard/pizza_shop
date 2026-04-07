@@ -199,7 +199,7 @@ class _ProductsScreenState extends State<ProductsScreen>
                     TextFormField(
                       controller: nameCtrl,
                       style: const TextStyle(color: AppColors.textPrimary),
-                      decoration: const InputDecoration(
+                      decoration: InputDecoration(
                         labelText: s.nameLabel,
                         hintText: 'e.g. Chicken Tikka Pizza (Large)',
                       ),
@@ -407,7 +407,7 @@ class _ProductsScreenState extends State<ProductsScreen>
                     TextFormField(
                       controller: nameCtrl,
                       style: const TextStyle(color: AppColors.textPrimary),
-                      decoration: const InputDecoration(
+                      decoration: InputDecoration(
                         labelText: s.categoryNameLabel,
                         hintText: 'e.g. Sandwiches, Drinks...',
                       ),
@@ -416,7 +416,7 @@ class _ProductsScreenState extends State<ProductsScreen>
                     const SizedBox(height: 20),
 
                     // Emoji picker
-                    const Text(
+                    Text(
                       s.chooseIcon,
                       style: TextStyle(color: AppColors.textMuted, fontSize: 13),
                     ),
