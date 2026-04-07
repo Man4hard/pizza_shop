@@ -723,11 +723,11 @@ class _ProductsScreenState extends State<ProductsScreen>
           ),
           const SizedBox(width: 8),
           if (isProductsTab) ...[
-            _statChip(Icons.check_circle_outline_rounded, '${$a} active' => p.available).length), Colors.green),
+            _statChip(Icons.check_circle_outline_rounded, '${_products.where((p) => p.available).length} active', Colors.green),
             const SizedBox(width: 8),
-            _statChip(Icons.hide_source_rounded, '${$a} hidden' => !p.available).length), AppColors.textMuted),
+            _statChip(Icons.hide_source_rounded, '${_products.where((p) => !p.available).length} hidden', AppColors.textMuted),
           ] else ...[
-            _statChip(Icons.category_rounded, '${$a} cats', AppColors.primary),
+            _statChip(Icons.category_rounded, '${_categories.length} cats', AppColors.primary),
           ],
         ],
       ),
@@ -1072,7 +1072,7 @@ class _ProductsScreenState extends State<ProductsScreen>
               _actionBtn(
                 icon: Icons.delete_outline_rounded,
                 color: productCount > 0 ? AppColors.textMuted : AppColors.error,
-                tooltip: productCount > 0 ? 'Has ${$a == 1 ? "1 product" : "${$a} products"} — cannot delete' : 'Delete category',
+                tooltip: productCount > 0 ? 'Has ${productCount == 1 ? "1 product" : "$productCount products"} — cannot delete' : 'Delete category',
                 onTap: () => _deleteCategory(cat),
               ),
             ],
@@ -1093,7 +1093,7 @@ class _ProductsScreenState extends State<ProductsScreen>
               const Icon(Icons.inventory_2_outlined, size: 13, color: AppColors.textMuted),
               const SizedBox(width: 4),
               Text(
-                '${$a == 1 ? "1 product" : "${$a} products"}',
+                '${productCount == 1 ? "1 product" : "$productCount products"}',
                 style: const TextStyle(color: AppColors.textMuted, fontSize: 12),
               ),
             ],
