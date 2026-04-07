@@ -945,7 +945,7 @@ class _ProductsScreenState extends State<ProductsScreen>
       child: LayoutBuilder(
         builder: (_, constraints) {
           final w = constraints.maxWidth;
-          final cols = Breakpoints.isDesktop(w) ? 3 : Breakpoints.isTablet(w) ? 2 : 1;
+          final cols = Breakpoints.isWide(w) ? 2 : 1;
           if (cols > 1) {
             return GridView.builder(
               padding: const EdgeInsets.fromLTRB(20, 16, 20, 100),
