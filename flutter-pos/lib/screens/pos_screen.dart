@@ -424,19 +424,26 @@ class _PosScreenState extends State<PosScreen> {
               if (group.isGrouped) {
                 final qtyMap = {for (final v in group.variants) v.id: cart.quantityOf(v.id)};
                 return GroupedProductCard(
+  
                   baseName: group.baseName,
+  
                   variants: group.variants,
-                  quantityMap: qtyMap,
-                  onAdd: (p) => cart.addProduct(p),
-                  onRemove: (p) => cart.removeProduct(p.id),
+  
+                  cartQuantities: qtyMap,
+  
+                  onVariantSelected: (p) => cart.addProduct(p),
+  
                 );
               } else {
                 final p = group.variants.first;
                 return ProductCard(
+  
                   product: p,
+  
                   quantity: cart.quantityOf(p.id),
-                  onAdd: () => cart.addProduct(p),
-                  onRemove: () => cart.removeProduct(p.id),
+  
+                  onTap: () => cart.addProduct(p),
+  
                 );
               }
             },
