@@ -61,7 +61,7 @@ class _SalesScreenState extends State<SalesScreen> {
     }
   }
 
-  double get _totalRevenue => _sales.fold(0, (sum, s) => sum + 'Total');
+  double get _totalRevenue => _sales.fold(0, (sum, s) => sum + s.total);
 
   Map<String, double> get _paymentBreakdown {
     final map = <String, double>{};
@@ -77,14 +77,14 @@ class _SalesScreenState extends State<SalesScreen> {
       backgroundColor: AppColors.background,
       body: Column(
         children: [
-          _buildHeader(s),
+          _buildHeader(),
           Expanded(
             child: _loading
                 ? const Center(child: CircularProgressIndicator(color: AppColors.primary))
                 : _error != null
                     ? Center(child: Text(_error!, style: const TextStyle(color: AppColors.error)))
                     : _sales.isEmpty
-                        ? _buildEmpty(s)
+                        ? _buildEmpty()
                         : RefreshIndicator(
                             onRefresh: _load,
                             color: AppColors.primary,
@@ -93,7 +93,7 @@ class _SalesScreenState extends State<SalesScreen> {
                                 final isWide = Breakpoints.isWide(constraints.maxWidth);
                                 return CustomScrollView(
                                   slivers: [
-                                    SliverToBoxAdapter(child: _buildSummary(s)),
+                                    SliverToBoxAdapter(child: _buildSummary()),
                                     SliverPadding(
                                       padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
                                       sliver: isWide
@@ -105,13 +105,13 @@ class _SalesScreenState extends State<SalesScreen> {
                                                 childAspectRatio: 3.2,
                                               ),
                                               delegate: SliverChildBuilderDelegate(
-                                                (_, i) => _buildSaleTile(_sales[i], s),
+                                                (_, i) => _buildSaleTile(_sales[i]),
                                                 childCount: _sales.length,
                                               ),
                                             )
                                           : SliverList(
                                               delegate: SliverChildBuilderDelegate(
-                                                (_, i) => _buildSaleTile(_sales[i], s),
+                                                (_, i) => _buildSaleTile(_sales[i]),
                                                 childCount: _sales.length,
                                               ),
                                             ),
@@ -127,7 +127,7 @@ class _SalesScreenState extends State<SalesScreen> {
     );
   }
 
-  Widget _buildHeader(s) => Container(
+  Widget _buildHeader() => Container(
     color: AppColors.surface,
     padding: const EdgeInsets.fromLTRB(20, 52, 20, 16),
     child: Row(
@@ -157,7 +157,7 @@ class _SalesScreenState extends State<SalesScreen> {
     ),
   );
 
-  Widget _buildSummary(s) => Padding(
+  Widget _buildSummary() => Padding(
     padding: const EdgeInsets.all(20),
     child: Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -189,7 +189,7 @@ class _SalesScreenState extends State<SalesScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.end,
                   children: [
-                    Text(_pmLabel(e.key, s), style: TextStyle(color: _pmColor(e.key), fontSize: 11, fontWeight: FontWeight.w600)),
+                    Text(_pmLabel(e.key), style: TextStyle(color: _pmColor(e.key), fontSize: 11, fontWeight: FontWeight.w600)),
                     Text(_currency.format(e.value), style: const TextStyle(color: AppColors.textPrimary, fontSize: 14, fontWeight: FontWeight.w600)),
                   ],
                 ),
@@ -201,7 +201,7 @@ class _SalesScreenState extends State<SalesScreen> {
     ),
   );
 
-  Widget _buildEmpty(s) => Center(
+  Widget _buildEmpty() => Center(
     child: Column(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
@@ -212,11 +212,11 @@ class _SalesScreenState extends State<SalesScreen> {
     ),
   );
 
-  Widget _buildSaleTile(SaleRecord sale, s) => Container(
+  Widget _buildSaleTile(SaleRecord sale) => Container(
     margin: const EdgeInsets.only(bottom: 8),
     padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
     decoration: BoxDecoration(
-      color: AppColor'Card',
+      color: AppColors.card,
       borderRadius: BorderRadius.circular(12),
       border: Border.all(color: AppColors.cardBorder),
     ),
@@ -273,7 +273,7 @@ class _SalesScreenState extends State<SalesScreen> {
     ),
   );
 
-  String _pmLabel(String method, s) {
+  String _pmLabel(String method) {
     switch (method.toLowerCase()) {
       case 'cash': return 'Cash';
       case 'card': return 'Card';
