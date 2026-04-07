@@ -229,7 +229,7 @@ class _SalesScreenState extends State<SalesScreen> {
             borderRadius: BorderRadius.circular(8),
           ),
           child: Text(
-            _pmLabel(sale.paymentMethod, s),
+            _pmLabel(sale.paymentMethod),
             style: TextStyle(color: _pmColor(sale.paymentMethod), fontSize: 12, fontWeight: FontWeight.w600),
           ),
         ),
