@@ -6,7 +6,6 @@ import '../models/product.dart';
 import '../models/order.dart';
 import '../services/database_service.dart';
 import '../services/cart_provider.dart';
-import '../services/locale_provider.dart';
 import '../theme/app_theme.dart';
 import '../theme/breakpoints.dart';
 import '../widgets/product_card.dart';
@@ -58,9 +57,8 @@ class _PosScreenState extends State<PosScreen> {
     } catch (e) {
       setState(() => _loading = false);
       if (mounted) {
-        final s = context.read<LocaleProvider>().strings;
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('${s.errorLoadingData}: $e'), backgroundColor: AppColors.error),
+          SnackBar(content: Text('${'Error loading data'}: $e'), backgroundColor: AppColors.error),
         );
       }
     }
@@ -73,9 +71,8 @@ class _PosScreenState extends State<PosScreen> {
       setState(() => _products = products);
     } catch (e) {
       if (mounted) {
-        final s = context.read<LocaleProvider>().strings;
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('${s.errorStr}: $e'), backgroundColor: AppColors.error),
+          SnackBar(content: Text('${'Error'}: $e'), backgroundColor: AppColors.error),
         );
       }
     }
@@ -138,16 +135,14 @@ class _PosScreenState extends State<PosScreen> {
       }
     } catch (e) {
       if (mounted) {
-        final s = context.read<LocaleProvider>().strings;
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('${s.orderFailed}: $e'), backgroundColor: AppColors.error),
+          SnackBar(content: Text('${'Order failed'}: $e'), backgroundColor: AppColors.error),
         );
       }
     }
   }
 
   Future<Map<String, String?>?> _showCustomerInfoDialog() async {
-    final s = context.read<LocaleProvider>().strings;
     final nameCtrl = TextEditingController();
     final tableCtrl = TextEditingController();
     final notesCtrl = TextEditingController();
@@ -156,26 +151,26 @@ class _PosScreenState extends State<PosScreen> {
       builder: (ctx) => AlertDialog(
         backgroundColor: AppColors.surface,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        title: Text(s.customerInfo, style: const TextStyle(color: AppColors.textPrimary)),
+        title: Text('Customer Info', style: const TextStyle(color: AppColors.textPrimary)),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             TextField(
               controller: nameCtrl,
               style: const TextStyle(color: AppColors.textPrimary),
-              decoration: InputDecoration(labelText: s.customerNameField),
+              decoration: InputDecoration(labelText: 'Customer Name (optional)'),
             ),
             const SizedBox(height: 12),
             TextField(
               controller: tableCtrl,
               style: const TextStyle(color: AppColors.textPrimary),
-              decoration: InputDecoration(labelText: s.tableNumberField),
+              decoration: InputDecoration(labelText: 'Table Number (optional)'),
             ),
             const SizedBox(height: 12),
             TextField(
               controller: notesCtrl,
               style: const TextStyle(color: AppColors.textPrimary),
-              decoration: InputDecoration(labelText: s.notesField),
+              decoration: InputDecoration(labelText: 'Notes (optional)'),
               maxLines: 2,
             ),
           ],
@@ -183,7 +178,7 @@ class _PosScreenState extends State<PosScreen> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
-            child: Text(s.cancel, style: const TextStyle(color: AppColors.textSecondary)),
+            child: Text('Cancel', style: const TextStyle(color: AppColors.textSecondary)),
           ),
           ElevatedButton(
             onPressed: () => Navigator.pop(ctx, {
@@ -191,7 +186,7 @@ class _PosScreenState extends State<PosScreen> {
               'tableNumber': tableCtrl.text.trim().isEmpty ? null : tableCtrl.text.trim(),
               'notes': notesCtrl.text.trim().isEmpty ? null : notesCtrl.text.trim(),
             }),
-            child: Text(s.continueBtn),
+            child: Text('Continue'),
           ),
         ],
       ),
@@ -200,7 +195,6 @@ class _PosScreenState extends State<PosScreen> {
 
   @override
   Widget build(BuildContext context) {
-    context.watch<LocaleProvider>();
     final isMobile = Breakpoints.isPhone(MediaQuery.of(context).size.width);
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -228,7 +222,6 @@ class _PosScreenState extends State<PosScreen> {
   );
 
   Widget _buildMobileCartBar(CartProvider cart) {
-    final s = context.watch<LocaleProvider>().strings;
     return Container(
       padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
       color: AppColors.surface,
@@ -240,8 +233,8 @@ class _PosScreenState extends State<PosScreen> {
               icon: const Icon(Icons.shopping_cart_outlined, size: 18),
               label: Text(
                 cart.items.isEmpty
-                    ? s.cartEmpty
-                    : '${cart.items.length} ${s.itemsLabel} • ${_currency.format(cart.total)}',
+                    ? 'Cart is empty'
+                    : '${cart.items.length} ${'items'} • ${_currency.format(cart.total)}',
                 overflow: TextOverflow.ellipsis,
               ),
               style: OutlinedButton.styleFrom(
@@ -256,7 +249,7 @@ class _PosScreenState extends State<PosScreen> {
             height: 44,
             child: ElevatedButton(
               onPressed: cart.items.isNotEmpty ? _placeOrder : null,
-              child: Text(s.placeOrder),
+              child: Text('Place Order'),
             ),
           ),
         ],
@@ -306,14 +299,11 @@ class _PosScreenState extends State<PosScreen> {
                           }
                         : null,
                     icon: const Icon(Icons.point_of_sale_rounded),
-                    label: Builder(builder: (ctx) {
-                      final s = ctx.watch<LocaleProvider>().strings;
-                      return Text(
-                        cart.items.isEmpty
-                            ? s.addItemsToOrder
-                            : '${s.placeOrder} • ${_currency.format(cart.total)}',
-                      );
-                    }),
+                    label: Text(
+                      cart.items.isEmpty
+                          ? 'Add items to order'
+                          : 'Place Order • ${_currency.format(cart.total)}',
+                    ),
                   ),
                 ),
               ),
@@ -325,7 +315,6 @@ class _PosScreenState extends State<PosScreen> {
   }
 
   Widget _buildProductsPane() {
-    final s = context.watch<LocaleProvider>().strings;
     return Column(
       children: [
         _buildSearchBar(s),
@@ -342,7 +331,7 @@ class _PosScreenState extends State<PosScreen> {
       style: const TextStyle(color: AppColors.textPrimary),
       onChanged: (v) => setState(() => _search = v),
       decoration: InputDecoration(
-        hintText: s.searchHint,
+        hintText: 'Search products...',
         prefixIcon: const Icon(Icons.search_rounded, color: AppColors.textMuted),
         suffixIcon: _search.isNotEmpty
             ? IconButton(
@@ -366,7 +355,7 @@ class _PosScreenState extends State<PosScreen> {
       separatorBuilder: (_, __) => const SizedBox(width: 8),
       itemBuilder: (_, i) {
         final selected = i == 0 ? _selectedCategoryId == null : _categories[i - 1].id == _selectedCategoryId;
-        final label = i == 0 ? s.allCategories : (_categories[i - 1].icon != null ? '${_categories[i - 1].icon} ${_categories[i - 1].name}' : _categories[i - 1].name);
+        final label = i == 0 ? 'All' : (_categories[i - 1].icon != null ? '${_categories[i - 1].icon} ${_categories[i - 1].name}' : _categories[i - 1].name);
         return GestureDetector(
           onTap: () => _loadProducts(i == 0 ? null : _categories[i - 1].id),
           child: AnimatedContainer(
@@ -402,7 +391,7 @@ class _PosScreenState extends State<PosScreen> {
           children: [
             const Icon(Icons.local_pizza_outlined, size: 64, color: AppColors.textMuted),
             const SizedBox(height: 16),
-            Text(s.noItemsFound, style: const TextStyle(color: AppColors.textMuted)),
+            Text('No items found', style: const TextStyle(color: AppColors.textMuted)),
           ],
         ),
       );
@@ -466,7 +455,6 @@ class _PosScreenState extends State<PosScreen> {
   );
 
   Widget _buildCartHeader(CartProvider cart) {
-    final s = context.watch<LocaleProvider>().strings;
     return Container(
       padding: const EdgeInsets.fromLTRB(20, 20, 20, 16),
       decoration: const BoxDecoration(
@@ -476,7 +464,7 @@ class _PosScreenState extends State<PosScreen> {
       child: Row(
         children: [
           Text(
-            s.currentOrder,
+            'Current Order',
             style: const TextStyle(color: AppColors.textPrimary, fontSize: 18, fontWeight: FontWeight.w700),
           ),
           const Spacer(),
@@ -490,7 +478,7 @@ class _PosScreenState extends State<PosScreen> {
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Text(
-                  s.clearCart,
+                  'Clear',
                   style: const TextStyle(color: AppColors.error, fontSize: 12, fontWeight: FontWeight.w600),
                 ),
               ),
@@ -501,7 +489,6 @@ class _PosScreenState extends State<PosScreen> {
   }
 
   Widget _buildCartItems(CartProvider cart) {
-    final s = context.watch<LocaleProvider>().strings;
     if (cart.items.isEmpty) {
       return Center(
         child: Column(
@@ -509,9 +496,9 @@ class _PosScreenState extends State<PosScreen> {
           children: [
             const Icon(Icons.shopping_cart_outlined, size: 64, color: AppColors.textMuted),
             const SizedBox(height: 12),
-            Text(s.cartEmpty, style: const TextStyle(color: AppColors.textMuted, fontSize: 16)),
+            Text('Cart is empty', style: const TextStyle(color: AppColors.textMuted, fontSize: 16)),
             const SizedBox(height: 4),
-            Text(s.tapItemsToAdd, style: const TextStyle(color: AppColors.textMuted, fontSize: 13)),
+            Text('Tap items to add them', style: const TextStyle(color: AppColors.textMuted, fontSize: 13)),
           ],
         ),
       );
@@ -542,7 +529,6 @@ class _PosScreenState extends State<PosScreen> {
   }
 
   Widget _buildCartSummary(CartProvider cart) {
-    final s = context.watch<LocaleProvider>().strings;
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
       decoration: const BoxDecoration(
@@ -555,7 +541,7 @@ class _PosScreenState extends State<PosScreen> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(s.total, style: const TextStyle(color: AppColors.textPrimary, fontSize: 18, fontWeight: FontWeight.w700)),
+              Text('Total', style: const TextStyle(color: AppColors.textPrimary, fontSize: 18, fontWeight: FontWeight.w700)),
               Text(_currency.format(cart.total),
                   style: const TextStyle(color: AppColors.primary, fontSize: 22, fontWeight: FontWeight.w700)),
             ],
@@ -566,7 +552,6 @@ class _PosScreenState extends State<PosScreen> {
   }
 
   Widget _buildCartFooter(CartProvider cart) {
-    final s = context.watch<LocaleProvider>().strings;
     return Container(
       padding: const EdgeInsets.all(20),
       color: AppColors.surface,
@@ -578,8 +563,8 @@ class _PosScreenState extends State<PosScreen> {
           icon: const Icon(Icons.point_of_sale_rounded),
           label: Text(
             cart.items.isEmpty
-                ? s.addItemsToOrder
-                : '${s.placeOrder} • ${_currency.format(cart.total)}',
+                ? 'Add items to order'
+                : '${'Place Order'} • ${_currency.format(cart.total)}',
             style: const TextStyle(fontSize: 15),
           ),
         ),
