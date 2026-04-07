@@ -178,7 +178,7 @@ class BillDialog extends StatelessWidget {
                   const SizedBox(width: 12),
                   Expanded(
                     flex: 2,
-                    child: ElevatedButton.icon(
+                    child: ElevatedButton(
                       onPressed: () {
                         ScaffoldMessenger.of(context).showSnackBar(
                           const SnackBar(
@@ -187,11 +187,26 @@ class BillDialog extends StatelessWidget {
                           ),
                         );
                       },
-                      icon: const Icon(Icons.print_rounded, size: 18),
-                      label: const Text('Print', softWrap: false, overflow: TextOverflow.visible),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: AppColors.primary,
+                        padding: const EdgeInsets.symmetric(vertical: 14),
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                      ),
+                      child: const Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(Icons.print_rounded, size: 18, color: Colors.white),
+                          SizedBox(width: 8),
+                          Text(
+                            'Print',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.w600,
+                              fontSize: 15,
+                            ),
+                          ),
+                        ],
                       ),
                     ),
                   ),
