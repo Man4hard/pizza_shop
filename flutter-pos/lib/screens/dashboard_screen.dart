@@ -174,14 +174,14 @@ class _DashboardScreenState extends State<DashboardScreen> {
     children: [
       StatCard(
         title: ls.todaysRevenue,
-        value: _currency.format(s.totalRevenue),
+        value: _currency.format(s.totalSalesToday),
         icon: Icons.payments_rounded,
         iconColor: AppColors.success,
         iconBg: AppColors.success.withOpacity(0.12),
       ),
       StatCard(
-        title: ls.totalOrders,
-        value: s.totalOrders.toString(),
+        title: ls.totalOrdersToday,
+        value: s.totalOrdersToday.toString(),
         icon: Icons.receipt_long_rounded,
         iconColor: AppColors.accent,
         iconBg: AppColors.accent.withOpacity(0.12),
@@ -223,7 +223,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
   );
 
   Widget _buildHourlyChart() {
-    final maxY = _hourlySales.map((h) => h.totalSales).fold<double>(0, (a, b) => a > b ? a : b);
+    final maxY = _hourlySales.map((h) => h.revenue).fold<double>(0, (a, b) => a > b ? a : b);
     return Container(
       height: 200,
       padding: const EdgeInsets.all(16),
@@ -239,7 +239,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
             x: h.hour,
             barRods: [
               BarChartRodData(
-                toY: h.totalSales,
+                toY: h.revenue,
                 color: AppColors.primary,
                 width: 8,
                 borderRadius: const BorderRadius.vertical(top: Radius.circular(4)),
