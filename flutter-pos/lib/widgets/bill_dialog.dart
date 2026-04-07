@@ -50,7 +50,7 @@ class BillDialog extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'Receipt #${$a}',
+                    'Receipt #${order.orderNumber}',
                     style: const TextStyle(color: Colors.black87, fontWeight: FontWeight.w700, fontSize: 14),
                     overflow: TextOverflow.ellipsis,
                   ),
