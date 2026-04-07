@@ -119,7 +119,6 @@ class ProductCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final currency = NumberFormat.currency(symbol: 'Rs. ', decimalDigits: 0);
     final inCart = quantity > 0;
     final color = _categoryColor(product.categoryName ?? '');
     final emoji = _categoryEmoji(product.categoryName ?? '');
@@ -181,7 +180,7 @@ class ProductCard extends StatelessWidget {
                 padding: const EdgeInsets.fromLTRB(10, 8, 10, 8),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Text(
                       product.name,
@@ -193,14 +192,6 @@ class ProductCard extends StatelessWidget {
                       ),
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
-                    ),
-                    Text(
-                      currency.format(product.price),
-                      style: TextStyle(
-                        color: color,
-                        fontSize: 13,
-                        fontWeight: FontWeight.w800,
-                      ),
                     ),
                   ],
                 ),
@@ -235,10 +226,6 @@ class GroupedProductCard extends StatelessWidget {
     final categoryName = variants.first.categoryName ?? '';
     final color = _categoryColor(categoryName);
     final emoji = _categoryEmoji(categoryName);
-    final currency = NumberFormat.currency(symbol: 'Rs. ', decimalDigits: 0);
-
-    // Show starting price
-    final minPrice = variants.map((v) => v.price).reduce((a, b) => a < b ? a : b);
 
     return GestureDetector(
       onTap: () => _showSizePicker(context),
@@ -296,7 +283,7 @@ class GroupedProductCard extends StatelessWidget {
                 padding: const EdgeInsets.fromLTRB(10, 8, 10, 8),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Text(
                       baseName,
@@ -308,22 +295,6 @@ class GroupedProductCard extends StatelessWidget {
                       ),
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
-                    ),
-                    Row(
-                      children: [
-                        Text(
-                          'from ',
-                          style: TextStyle(color: AppColors.textMuted, fontSize: 10),
-                        ),
-                        Text(
-                          currency.format(minPrice),
-                          style: TextStyle(
-                            color: color,
-                            fontSize: 13,
-                            fontWeight: FontWeight.w800,
-                          ),
-                        ),
-                      ],
                     ),
                   ],
                 ),
