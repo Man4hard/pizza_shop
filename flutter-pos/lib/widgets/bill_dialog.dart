@@ -12,6 +12,7 @@ class BillDialog extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final s = context.read<LocaleProvider>().strings;
     final currency = NumberFormat.currency(symbol: 'Rs. ', decimalDigits: 0);
     final dateFormat = DateFormat('MMM d, yyyy • hh:mm a');
 
