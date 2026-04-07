@@ -35,9 +35,7 @@ class SlicePosApp extends StatelessWidget {
     return MaterialApp(
       title: 'Ahmed Fast Food - POS',
       debugShowCheckedModeBanner: false,
-      theme: ThemeData.dark().copyWith(
-        colorScheme: ColorScheme.dark(primary: AppColors.primary),
-      ),
+      theme: AppTheme.dark,
       home: const HomeShell(),
     );
   }
