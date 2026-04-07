@@ -78,7 +78,7 @@ class _OrdersScreenState extends State<OrdersScreen>
         backgroundColor: AppColors.surface,
         title: Text('Cancel Order', style: const TextStyle(color: AppColors.textPrimary)),
         content: Text(
-          'Cancel order $a?',
+          'Cancel order ${order.orderNumber}?',
           style: const TextStyle(color: AppColors.textSecondary),
         ),
         actions: [
@@ -176,24 +176,24 @@ class _OrdersScreenState extends State<OrdersScreen>
                               childAspectRatio: 2.4,
                             ),
                             itemCount: _orders.length,
-                            itemBuilder: (_, i) => _buildOrderCard(_orders[i], s),
+                            itemBuilder: (_, i) => _buildOrderCard(_orders[i]),
                           );
                         }
                         return ListView.separated(
                           padding: const EdgeInsets.all(16),
                           itemCount: _orders.length,
                           separatorBuilder: (_, __) => const SizedBox(height: 12),
-                          itemBuilder: (_, i) => _buildOrderCard(_orders[i], s),
+                          itemBuilder: (_, i) => _buildOrderCard(_orders[i]),
                         );
                       },
                     ),
     );
   }
 
-  Widget _buildOrderCard(Order order, s) => Container(
+  Widget _buildOrderCard(Order order) => Container(
     padding: const EdgeInsets.all(16),
     decoration: BoxDecoration(
-      color: AppColor'Card',
+      color: AppColors.card,
       borderRadius: BorderRadius.circular(16),
       border: Border.all(color: AppColors.cardBorder),
     ),
@@ -225,7 +225,7 @@ class _OrdersScreenState extends State<OrdersScreen>
                 borderRadius: BorderRadius.circular(6),
               ),
               child: Text(
-                _statusLabel(order.status, s),
+                _statusLabel(order.status),
                 style: TextStyle(
                   color: _statusColor(order.status),
                   fontSize: 11,
@@ -274,7 +274,7 @@ class _OrdersScreenState extends State<OrdersScreen>
     ),
   );
 
-  String _statusLabel(String status, s) {
+  String _statusLabel(String status) {
     switch (status) {
       case 'completed': return 'Completed';
       case 'cancelled': return 'Cancelled';
