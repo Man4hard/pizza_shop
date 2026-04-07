@@ -159,7 +159,19 @@ class _HomeShellState extends State<HomeShell> {
                 : const SizedBox.shrink(),
           ),
           _buildLangToggle(locale),
-          const SizedBox(height: 16),
+          const SizedBox(height: 10),
+          const Padding(
+            padding: EdgeInsets.only(bottom: 14),
+            child: Text(
+              'Developed by TAYYAB',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                color: AppColors.textMuted,
+                fontSize: 10,
+                letterSpacing: 0.5,
+              ),
+            ),
+          ),
         ],
       ),
     );
@@ -300,6 +312,20 @@ class _HomeShellState extends State<HomeShell> {
                     tooltip: s.switchLang,
                     icon: const Icon(Icons.language_rounded,
                         color: AppColors.textSecondary),
+                  ),
+                ),
+                const Padding(
+                  padding: EdgeInsets.only(bottom: 10),
+                  child: RotatedBox(
+                    quarterTurns: 3,
+                    child: Text(
+                      'Dev: TAYYAB',
+                      style: TextStyle(
+                        color: AppColors.textMuted,
+                        fontSize: 9,
+                        letterSpacing: 0.4,
+                      ),
+                    ),
                   ),
                 ),
                 const SizedBox(height: 8),
