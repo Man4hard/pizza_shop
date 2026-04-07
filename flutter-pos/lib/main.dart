@@ -41,10 +41,17 @@ class SlicePosApp extends StatelessWidget {
       title: 'Ahmed Fast Food - POS',
       debugShowCheckedModeBanner: false,
       theme: locale.theme,
-      builder: (context, child) => Directionality(
-        textDirection: TextDirection.ltr,
-        child: child!,
-      ),
+      builder: (context, child) {
+        final content = Directionality(
+          textDirection: TextDirection.ltr,
+          child: child!,
+        );
+        final fontStyle = locale.urduFontStyle;
+        if (fontStyle != null) {
+          return DefaultTextStyle.merge(style: fontStyle, child: content);
+        }
+        return content;
+      },
       home: const HomeShell(),
     );
   }
