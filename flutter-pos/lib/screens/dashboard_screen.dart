@@ -223,7 +223,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
   );
 
   Widget _buildHourlyChart() {
-    final maxY = _hourlySales.map((h) => h.revenue).fold<double>(0, (a, b) => a > b ? a : b);
+    final maxY = _hourlySales.map((h) => h.sales).fold<double>(0, (a, b) => a > b ? a : b);
     return Container(
       height: 200,
       padding: const EdgeInsets.all(16),
@@ -239,7 +239,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
             x: h.hour,
             barRods: [
               BarChartRodData(
-                toY: h.revenue,
+                toY: h.sales,
                 color: AppColors.primary,
                 width: 8,
                 borderRadius: const BorderRadius.vertical(top: Radius.circular(4)),
