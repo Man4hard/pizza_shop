@@ -1,5 +1,9 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:path/path.dart' as p;
 import '../models/category.dart';
 import '../models/product.dart';
 import '../services/database_service.dart';
@@ -150,7 +154,18 @@ class _ProductsScreenState extends State<ProductsScreen>
     final descCtrl = TextEditingController(text: existing?.description ?? '');
     int? selectedCategoryId = existing?.categoryId ?? (_categories.isNotEmpty ? _categories.first.id : null);
     bool available = existing?.available ?? true;
+    String? pickedImagePath = existing?.imageUrl;
     final formKey = GlobalKey<FormState>();
+
+    Future<void> pickImage(StateSetter setS) async {
+      final picker = ImagePicker();
+      final picked = await picker.pickImage(source: ImageSource.gallery, imageQuality: 85);
+      if (picked == null) return;
+      final appDir = await getApplicationDocumentsDirectory();
+      final fileName = 'product_${DateTime.now().millisecondsSinceEpoch}${p.extension(picked.path)}';
+      final saved = await File(picked.path).copy('${appDir.path}/$fileName');
+      setS(() => pickedImagePath = saved.path);
+    }
 
     await showDialog(
       context: context,
@@ -159,8 +174,8 @@ class _ProductsScreenState extends State<ProductsScreen>
           backgroundColor: AppColors.surface,
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
           child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 480),
-            child: Padding(
+            constraints: const BoxConstraints(maxWidth: 480, maxHeight: 680),
+            child: SingleChildScrollView(
               padding: const EdgeInsets.all(28),
               child: Form(
                 key: formKey,
@@ -249,6 +264,61 @@ class _ProductsScreenState extends State<ProductsScreen>
                     ),
                     const SizedBox(height: 16),
 
+                    // Product image picker
+                    GestureDetector(
+                      onTap: () => pickImage(setS),
+                      child: Container(
+                        height: 140,
+                        decoration: BoxDecoration(
+                          color: AppColors.surfaceElevated,
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(
+                            color: pickedImagePath != null ? AppColors.primary : AppColors.cardBorder,
+                            width: pickedImagePath != null ? 2 : 1,
+                          ),
+                        ),
+                        clipBehavior: Clip.antiAlias,
+                        child: pickedImagePath != null
+                            ? Stack(
+                                fit: StackFit.expand,
+                                children: [
+                                  pickedImagePath!.startsWith('/')
+                                      ? Image.file(File(pickedImagePath!), fit: BoxFit.cover)
+                                      : Image.asset(pickedImagePath!, fit: BoxFit.cover),
+                                  Positioned(
+                                    bottom: 8, right: 8,
+                                    child: Container(
+                                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                                      decoration: BoxDecoration(
+                                        color: Colors.black.withOpacity(0.6),
+                                        borderRadius: BorderRadius.circular(20),
+                                      ),
+                                      child: const Row(
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          Icon(Icons.edit_rounded, color: Colors.white, size: 14),
+                                          SizedBox(width: 4),
+                                          Text('Change', style: TextStyle(color: Colors.white, fontSize: 12)),
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              )
+                            : Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Icon(Icons.add_photo_alternate_rounded,
+                                      color: AppColors.textMuted, size: 36),
+                                  const SizedBox(height: 8),
+                                  const Text('Tap to add product image',
+                                      style: TextStyle(color: AppColors.textMuted, fontSize: 13)),
+                                ],
+                              ),
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+
                     // Available toggle
                     Row(
                       children: [
@@ -291,6 +361,7 @@ class _ProductsScreenState extends State<ProductsScreen>
                                   'categoryId': selectedCategoryId,
                                   'description': descCtrl.text.trim().isEmpty ? null : descCtrl.text.trim(),
                                   'available': available,
+                                  'imageUrl': pickedImagePath,
                                 };
                                 if (existing == null) {
                                   await DatabaseService.createProduct(data);
