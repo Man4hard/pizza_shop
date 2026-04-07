@@ -3,7 +3,6 @@ import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import '../models/sale_record.dart';
 import '../services/database_service.dart';
-import '../services/locale_provider.dart';
 import '../theme/app_theme.dart';
 import '../theme/breakpoints.dart';
 
@@ -62,7 +61,7 @@ class _SalesScreenState extends State<SalesScreen> {
     }
   }
 
-  double get _totalRevenue => _sales.fold(0, (sum, s) => sum + s.total);
+  double get _totalRevenue => _sales.fold(0, (sum, s) => sum + 'Total');
 
   Map<String, double> get _paymentBreakdown {
     final map = <String, double>{};
@@ -74,7 +73,6 @@ class _SalesScreenState extends State<SalesScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final s = context.watch<LocaleProvider>().strings;
     return Scaffold(
       backgroundColor: AppColors.background,
       body: Column(
@@ -135,7 +133,7 @@ class _SalesScreenState extends State<SalesScreen> {
     child: Row(
       children: [
         Text(
-          s.salesHistory,
+          'Sales History',
           style: const TextStyle(color: AppColors.textPrimary, fontSize: 24, fontWeight: FontWeight.w700),
         ),
         const Spacer(),
@@ -145,7 +143,7 @@ class _SalesScreenState extends State<SalesScreen> {
           label: Text(
             _dateRange != null
                 ? '${_dateFormat.format(_dateRange!.start)} – ${_dateFormat.format(_dateRange!.end)}'
-                : s.filterByDate,
+                : 'Filter by date',
           ),
           style: TextButton.styleFrom(foregroundColor: AppColors.accent),
         ),
@@ -153,7 +151,7 @@ class _SalesScreenState extends State<SalesScreen> {
           IconButton(
             onPressed: () { setState(() => _dateRange = null); _load(); },
             icon: const Icon(Icons.clear_rounded, color: AppColors.textSecondary, size: 18),
-            tooltip: s.clearFilter,
+            tooltip: 'Clear filter',
           ),
       ],
     ),
@@ -178,7 +176,7 @@ class _SalesScreenState extends State<SalesScreen> {
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(s.totalRevenue, style: const TextStyle(color: AppColors.textSecondary, fontSize: 12)),
+                  Text('Total Revenue', style: const TextStyle(color: AppColors.textSecondary, fontSize: 12)),
                   Text(
                     _currency.format(_totalRevenue),
                     style: const TextStyle(color: AppColors.primary, fontSize: 24, fontWeight: FontWeight.w800),
@@ -209,7 +207,7 @@ class _SalesScreenState extends State<SalesScreen> {
       children: [
         const Icon(Icons.receipt_long_outlined, size: 64, color: AppColors.textMuted),
         const SizedBox(height: 16),
-        Text(s.noSales, style: const TextStyle(color: AppColors.textMuted, fontSize: 16)),
+        Text('No sales yet', style: const TextStyle(color: AppColors.textMuted, fontSize: 16)),
       ],
     ),
   );
@@ -218,7 +216,7 @@ class _SalesScreenState extends State<SalesScreen> {
     margin: const EdgeInsets.only(bottom: 8),
     padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
     decoration: BoxDecoration(
-      color: AppColors.card,
+      color: AppColor'Card',
       borderRadius: BorderRadius.circular(12),
       border: Border.all(color: AppColors.cardBorder),
     ),
@@ -249,7 +247,7 @@ class _SalesScreenState extends State<SalesScreen> {
                 [
                   _dateFormat.format(sale.soldAt.toLocal()),
                   _timeFormat.format(sale.soldAt.toLocal()),
-                  if (sale.tableNumber != null) '${s.tableLabel} ${sale.tableNumber}',
+                  if (sale.tableNumber != null) '${'Table'} ${sale.tableNumber}',
                 ].join(' · '),
                 style: const TextStyle(color: AppColors.textMuted, fontSize: 12),
                 overflow: TextOverflow.ellipsis,
@@ -266,7 +264,7 @@ class _SalesScreenState extends State<SalesScreen> {
             ),
             const SizedBox(height: 2),
             Text(
-              '${sale.itemCount} ${s.itemsLabel}',
+              '${sale.itemCount} ${'items'}',
               style: const TextStyle(color: AppColors.textMuted, fontSize: 12),
             ),
           ],
@@ -277,9 +275,9 @@ class _SalesScreenState extends State<SalesScreen> {
 
   String _pmLabel(String method, s) {
     switch (method.toLowerCase()) {
-      case 'cash': return s.cash;
-      case 'card': return s.card;
-      case 'digital': return s.digital;
+      case 'cash': return 'Cash';
+      case 'card': return 'Card';
+      case 'digital': return 'Digital';
       default: return method;
     }
   }
