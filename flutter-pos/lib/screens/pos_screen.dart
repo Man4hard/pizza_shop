@@ -317,14 +317,14 @@ class _PosScreenState extends State<PosScreen> {
   Widget _buildProductsPane() {
     return Column(
       children: [
-        _buildSearchBar(s),
-        _buildCategoryChips(s),
-        Expanded(child: _buildProductGrid(s)),
+        _buildSearchBar(),
+        _buildCategoryChips(),
+        Expanded(child: _buildProductGrid()),
       ],
     );
   }
 
-  Widget _buildSearchBar(s) => Padding(
+  Widget _buildSearchBar() => Padding(
     padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
     child: TextField(
       controller: _searchController,
@@ -346,7 +346,7 @@ class _PosScreenState extends State<PosScreen> {
     ),
   );
 
-  Widget _buildCategoryChips(s) => SizedBox(
+  Widget _buildCategoryChips() => SizedBox(
     height: 44,
     child: ListView.separated(
       padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -382,7 +382,7 @@ class _PosScreenState extends State<PosScreen> {
     ),
   );
 
-  Widget _buildProductGrid(s) {
+  Widget _buildProductGrid() {
     final groups = _filteredGroups;
     if (groups.isEmpty) {
       return Center(
