@@ -3,7 +3,6 @@ import 'package:intl/intl.dart';
 import '../models/category.dart';
 import '../models/product.dart';
 import '../services/database_service.dart';
-import '../services/locale_provider.dart';
 import 'package:provider/provider.dart';
 import '../theme/app_theme.dart';
 import '../theme/breakpoints.dart';
@@ -67,7 +66,6 @@ class _ProductsScreenState extends State<ProductsScreen>
       });
     } catch (e) {
       setState(() => _loading = false);
-      _showError('${context.read<LocaleProvider>().strings.failedToLoad}: $e');
     }
   }
 
@@ -147,7 +145,6 @@ class _ProductsScreenState extends State<ProductsScreen>
 
   // ── Add / Edit product dialog ─────────────────────────────────────
   Future<void> _showProductDialog({Product? existing}) async {
-    final s = context.read<LocaleProvider>().strings;
     final nameCtrl = TextEditingController(text: existing?.name ?? '');
     final priceCtrl = TextEditingController(text: existing != null ? existing.price.toStringAsFixed(0) : '');
     final descCtrl = TextEditingController(text: existing?.description ?? '');
@@ -179,7 +176,7 @@ class _ProductsScreenState extends State<ProductsScreen>
                         ),
                         const SizedBox(width: 10),
                         Text(
-                          existing == null ? s.addNewProduct : s.editProductTitle,
+                          existing == null ? 'Add New Product' : 'Edit Product',
                           style: const TextStyle(
                             color: AppColors.textPrimary,
                             fontSize: 18,
@@ -200,10 +197,10 @@ class _ProductsScreenState extends State<ProductsScreen>
                       controller: nameCtrl,
                       style: const TextStyle(color: AppColors.textPrimary),
                       decoration: InputDecoration(
-                        labelText: s.nameLabel,
+                        labelText: 'Name *',
                         hintText: 'e.g. Chicken Tikka Pizza (Large)',
                       ),
-                      validator: (v) => v == null || v.trim().isEmpty ? s.nameRequired : null,
+                      validator: (v) => v == null || v.trim().isEmpty ? 'Name is required' : null,
                     ),
                     const SizedBox(height: 16),
 
@@ -231,13 +228,13 @@ class _ProductsScreenState extends State<ProductsScreen>
                       value: selectedCategoryId,
                       dropdownColor: AppColors.surface,
                       style: const TextStyle(color: AppColors.textPrimary),
-                      decoration: InputDecoration(labelText: s.categoryLabel),
+                      decoration: InputDecoration(labelText: 'Category'),
                       items: _categories.map((c) => DropdownMenuItem(
                         value: c.id,
                         child: Text(c.name, style: const TextStyle(color: AppColors.textPrimary)),
                       )).toList(),
                       onChanged: (v) => setS(() => selectedCategoryId = v),
-                      validator: (v) => v == null ? s.selectCategory : null,
+                      validator: (v) => v == null ? 'Select category' : null,
                     ),
                     const SizedBox(height: 16),
 
@@ -255,7 +252,7 @@ class _ProductsScreenState extends State<ProductsScreen>
                     // Available toggle
                     Row(
                       children: [
-                        Text(s.available, style: const TextStyle(color: AppColors.textSecondary, fontSize: 14)),
+                        Text('Available', style: const TextStyle(color: AppColors.textSecondary, fontSize: 14)),
                         const Spacer(),
                         Switch(
                           value: available,
@@ -304,7 +301,7 @@ class _ProductsScreenState extends State<ProductsScreen>
                                 }
                                 await _loadData();
                               } catch (e) {
-                                _showError('${s.updateFailed}: $e');
+                                _showError('${'Update failed'}: $e');
                               }
                             },
                             style: ElevatedButton.styleFrom(
@@ -339,7 +336,6 @@ class _ProductsScreenState extends State<ProductsScreen>
   ];
 
   Future<void> _showCategoryDialog({Category? existing}) async {
-    final s = context.read<LocaleProvider>().strings;
     final nameCtrl = TextEditingController(text: existing?.name ?? '');
     String? selectedEmoji = existing?.icon;
     final formKey = GlobalKey<FormState>();
@@ -408,7 +404,7 @@ class _ProductsScreenState extends State<ProductsScreen>
                       controller: nameCtrl,
                       style: const TextStyle(color: AppColors.textPrimary),
                       decoration: InputDecoration(
-                        labelText: s.categoryNameLabel,
+                        labelText: 'Category Name *',
                         hintText: 'e.g. Sandwiches, Drinks...',
                       ),
                       validator: (v) => v == null || v.trim().isEmpty ? 'Name is required' : null,
@@ -417,7 +413,7 @@ class _ProductsScreenState extends State<ProductsScreen>
 
                     // Emoji picker
                     Text(
-                      s.chooseIcon,
+                      'Choose an Icon (optional)',
                       style: TextStyle(color: AppColors.textMuted, fontSize: 13),
                     ),
                     const SizedBox(height: 10),
@@ -499,14 +495,14 @@ class _ProductsScreenState extends State<ProductsScreen>
                                     nameCtrl.text.trim(),
                                     icon: selectedEmoji,
                                   );
-                                  _showSuccess(s.categoryAdded);
+                                  _showSuccess('Category added!');
                                 } else {
                                   await DatabaseService.updateCategory(
                                     existing.id,
                                     nameCtrl.text.trim(),
                                     icon: selectedEmoji,
                                   );
-                                  _showSuccess(s.categoryUpdated);
+                                  _showSuccess('Category updated!');
                                 }
                                 await _loadData();
                               } catch (e) {
@@ -519,7 +515,7 @@ class _ProductsScreenState extends State<ProductsScreen>
                               padding: const EdgeInsets.symmetric(vertical: 14),
                             ),
                             child: Text(
-                              existing == null ? s.addCategoryTitle : s.save,
+                              existing == null ? 'Add Category' : 'Save',
                               style: const TextStyle(fontWeight: FontWeight.w600),
                             ),
                           ),
@@ -577,7 +573,6 @@ class _ProductsScreenState extends State<ProductsScreen>
 
   @override
   Widget build(BuildContext context) {
-    context.watch<LocaleProvider>();
     final isProductsTab = _tabs.index == 0;
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -630,7 +625,6 @@ class _ProductsScreenState extends State<ProductsScreen>
   }
 
   Widget _buildTopBar(bool isProductsTab) {
-    final s = context.read<LocaleProvider>().strings;
     return SafeArea(
     bottom: false,
     child: Container(
@@ -644,12 +638,12 @@ class _ProductsScreenState extends State<ProductsScreen>
               mainAxisSize: MainAxisSize.min,
               children: [
                 Text(
-                  isProductsTab ? s.products : s.categories,
+                  isProductsTab ? 'Products' : 'Categories',
                   style: const TextStyle(color: AppColors.textPrimary, fontSize: 20, fontWeight: FontWeight.w800),
                   overflow: TextOverflow.ellipsis,
                 ),
                 Text(
-                  isProductsTab ? s.manageProducts : s.categories,
+                  isProductsTab ? 'Manage Products' : 'Categories',
                   style: const TextStyle(color: AppColors.textMuted, fontSize: 12),
                   overflow: TextOverflow.ellipsis,
                 ),
@@ -658,11 +652,11 @@ class _ProductsScreenState extends State<ProductsScreen>
           ),
           const SizedBox(width: 8),
           if (isProductsTab) ...[
-            _statChip(Icons.check_circle_outline_rounded, s.activeCount(_products.where((p) => p.available).length), Colors.green),
+            _statChip(Icons.check_circle_outline_rounded, '${$a} active' => p.available).length), Colors.green),
             const SizedBox(width: 8),
-            _statChip(Icons.hide_source_rounded, s.hiddenCount(_products.where((p) => !p.available).length), AppColors.textMuted),
+            _statChip(Icons.hide_source_rounded, '${$a} hidden' => !p.available).length), AppColors.textMuted),
           ] else ...[
-            _statChip(Icons.category_rounded, s.catsCount(_categories.length), AppColors.primary),
+            _statChip(Icons.category_rounded, '${$a} cats', AppColors.primary),
           ],
         ],
       ),
@@ -696,7 +690,6 @@ class _ProductsScreenState extends State<ProductsScreen>
   );
 
   Widget _buildFilters() {
-    final s = context.read<LocaleProvider>().strings;
     return Padding(
     padding: const EdgeInsets.fromLTRB(20, 12, 20, 4),
     child: Row(
@@ -707,7 +700,7 @@ class _ProductsScreenState extends State<ProductsScreen>
             style: const TextStyle(color: AppColors.textPrimary),
             onChanged: (v) => setState(() => _search = v),
             decoration: InputDecoration(
-              hintText: s.searchProducts,
+              hintText: 'Search products...',
               prefixIcon: const Icon(Icons.search_rounded, color: AppColors.textMuted),
               suffixIcon: _search.isNotEmpty
                   ? IconButton(
@@ -726,9 +719,9 @@ class _ProductsScreenState extends State<ProductsScreen>
           dropdownColor: AppColors.surface,
           style: const TextStyle(color: AppColors.textPrimary, fontSize: 13),
           underline: const SizedBox.shrink(),
-          hint: Text(s.allCategories, style: const TextStyle(color: AppColors.textMuted, fontSize: 13)),
+          hint: Text('All', style: const TextStyle(color: AppColors.textMuted, fontSize: 13)),
           items: [
-            DropdownMenuItem(value: null, child: Text(s.allCategories, style: const TextStyle(color: AppColors.textPrimary))),
+            DropdownMenuItem(value: null, child: Text('All', style: const TextStyle(color: AppColors.textPrimary))),
             ..._categories.map((c) => DropdownMenuItem(
               value: c.id,
               child: Text(c.name, style: const TextStyle(color: AppColors.textPrimary)),
@@ -742,7 +735,6 @@ class _ProductsScreenState extends State<ProductsScreen>
   }
 
   Widget _buildProductList() {
-    final s = context.read<LocaleProvider>().strings;
     final items = _filtered;
     if (items.isEmpty) {
       return Center(
@@ -751,7 +743,7 @@ class _ProductsScreenState extends State<ProductsScreen>
           children: [
             const Icon(Icons.inventory_2_outlined, size: 64, color: AppColors.textMuted),
             const SizedBox(height: 16),
-            Text(s.noItemsFound, style: const TextStyle(color: AppColors.textMuted, fontSize: 16)),
+            Text('No items found', style: const TextStyle(color: AppColors.textMuted, fontSize: 16)),
           ],
         ),
       );
@@ -971,7 +963,6 @@ class _ProductsScreenState extends State<ProductsScreen>
   }
 
   Widget _buildCategoryCard(Category cat) {
-    final s = context.read<LocaleProvider>().strings;
     final productCount = _categoryProductCounts[cat.id] ?? 0;
     final hasIcon = cat.icon != null && cat.icon!.isNotEmpty;
 
@@ -1004,13 +995,13 @@ class _ProductsScreenState extends State<ProductsScreen>
               _actionBtn(
                 icon: Icons.edit_rounded,
                 color: AppColors.textSecondary,
-                tooltip: s.editCategoryTooltip,
+                tooltip: 'Edit category',
                 onTap: () => _showCategoryDialog(existing: cat),
               ),
               _actionBtn(
                 icon: Icons.delete_outline_rounded,
                 color: productCount > 0 ? AppColors.textMuted : AppColors.error,
-                tooltip: productCount > 0 ? s.hasProducts(productCount) : s.deleteCategoryTooltip,
+                tooltip: productCount > 0 ? 'Has ${$a == 1 ? "1 product" : "${$a} products"} — cannot delete' : 'Delete category',
                 onTap: () => _deleteCategory(cat),
               ),
             ],
@@ -1031,7 +1022,7 @@ class _ProductsScreenState extends State<ProductsScreen>
               const Icon(Icons.inventory_2_outlined, size: 13, color: AppColors.textMuted),
               const SizedBox(width: 4),
               Text(
-                s.productCount(productCount),
+                '${$a == 1 ? "1 product" : "${$a} products"}',
                 style: const TextStyle(color: AppColors.textMuted, fontSize: 12),
               ),
             ],
