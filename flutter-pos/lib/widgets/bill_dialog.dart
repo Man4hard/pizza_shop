@@ -177,6 +177,7 @@ class BillDialog extends StatelessWidget {
                   ),
                   const SizedBox(width: 12),
                   Expanded(
+                    flex: 2,
                     child: ElevatedButton.icon(
                       onPressed: () {
                         ScaffoldMessenger.of(context).showSnackBar(
@@ -187,7 +188,7 @@ class BillDialog extends StatelessWidget {
                         );
                       },
                       icon: const Icon(Icons.print_rounded, size: 18),
-                      label: Text('Print'),
+                      label: const Text('Print', softWrap: false, overflow: TextOverflow.visible),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: AppColors.primary,
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
