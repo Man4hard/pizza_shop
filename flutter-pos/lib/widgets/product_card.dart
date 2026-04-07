@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../models/product.dart';
@@ -34,45 +35,61 @@ String? _productImage(String name) {
   return null;
 }
 
+/// Builds the image widget — handles local file path, asset path, or null.
+Widget _buildImageWidget(String imagePath, Color color, String emoji) {
+  final Widget img = imagePath.startsWith('/')
+      ? Image.file(File(imagePath), fit: BoxFit.cover,
+          errorBuilder: (_, __, ___) => _emojiGradient(color, emoji))
+      : Image.asset(imagePath, fit: BoxFit.cover,
+          errorBuilder: (_, __, ___) => _emojiGradient(color, emoji));
+  return Stack(
+    fit: StackFit.expand,
+    children: [
+      img,
+      Positioned.fill(
+        child: DecoratedBox(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: [Colors.transparent, Colors.black.withOpacity(0.35)],
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+            ),
+          ),
+        ),
+      ),
+    ],
+  );
+}
+
+Widget _emojiGradient(Color color, String emoji) => Container(
+  decoration: BoxDecoration(
+    gradient: LinearGradient(
+      colors: [color, color.withOpacity(0.6)],
+      begin: Alignment.topLeft,
+      end: Alignment.bottomRight,
+    ),
+  ),
+  child: Center(child: Text(emoji, style: const TextStyle(fontSize: 40))),
+);
+
 /// Header widget: real photo if available, else colored gradient + emoji.
 Widget _buildCardHeader({
   required String name,
   required Color color,
   required String emoji,
+  String? imageUrl,
   Widget? overlay,
 }) {
-  final imagePath = _productImage(name);
+  // Priority: user-uploaded imageUrl → name-based asset → gradient emoji
+  final imagePath = (imageUrl != null && imageUrl.isNotEmpty)
+      ? imageUrl
+      : _productImage(name);
 
   if (imagePath != null) {
     return Stack(
       fit: StackFit.expand,
       children: [
-        Image.asset(
-          imagePath,
-          fit: BoxFit.cover,
-          errorBuilder: (_, __, ___) => Container(
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                colors: [color, color.withOpacity(0.6)],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-              ),
-            ),
-            child: Center(child: Text(emoji, style: const TextStyle(fontSize: 40))),
-          ),
-        ),
-        // Dark gradient overlay so badges stay readable
-        Positioned.fill(
-          child: DecoratedBox(
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                colors: [Colors.transparent, Colors.black.withOpacity(0.35)],
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
-              ),
-            ),
-          ),
-        ),
+        _buildImageWidget(imagePath, color, emoji),
         if (overlay != null) overlay,
       ],
     );
@@ -149,6 +166,7 @@ class ProductCard extends StatelessWidget {
                 name: product.name,
                 color: color,
                 emoji: emoji,
+                imageUrl: product.imageUrl,
                 overlay: inCart
                     ? Positioned(
                         top: 6,
@@ -253,6 +271,7 @@ class GroupedProductCard extends StatelessWidget {
                 name: baseName,
                 color: color,
                 emoji: emoji,
+                imageUrl: variants.first.imageUrl,
                 overlay: totalInCart > 0
                     ? Positioned(
                         top: 6, right: 6,
