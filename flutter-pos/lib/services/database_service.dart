@@ -289,6 +289,7 @@ class DatabaseService {
       price: (r['price'] as num).toDouble(),
       categoryId: r['category_id'] as int,
       categoryName: r['category_name'] as String?,
+      imageUrl: r['image_url'] as String?,
       available: (r['available'] as int) == 1,
       createdAt: DateTime.parse(r['created_at'] as String),
     )).toList();
