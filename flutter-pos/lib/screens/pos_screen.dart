@@ -10,7 +10,6 @@ import '../theme/app_theme.dart';
 import '../theme/breakpoints.dart';
 import '../widgets/product_card.dart';
 import '../widgets/cart_item_tile.dart';
-import '../widgets/bill_dialog.dart';
 
 class PosScreen extends StatefulWidget {
   const PosScreen({super.key});
@@ -58,7 +57,7 @@ class _PosScreenState extends State<PosScreen> {
       setState(() => _loading = false);
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('${'Error loading data'}: $e'), backgroundColor: AppColors.error),
+          SnackBar(content: Text('Error loading data: $e'), backgroundColor: AppColors.error),
         );
       }
     }
@@ -72,7 +71,7 @@ class _PosScreenState extends State<PosScreen> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('${'Error'}: $e'), backgroundColor: AppColors.error),
+          SnackBar(content: Text('Error: $e'), backgroundColor: AppColors.error),
         );
       }
     }
@@ -116,27 +115,47 @@ class _PosScreenState extends State<PosScreen> {
     return _groupProducts(filtered);
   }
 
+  // Creates the order as PENDING only — payment is collected later in the Orders screen
   Future<void> _placeOrder() async {
     final cart = Provider.of<CartProvider>(context, listen: false);
     if (cart.items.isEmpty) return;
     try {
       final info = await _showCustomerInfoDialog();
       if (info == null) return;
+
       final order = await DatabaseService.createOrder(
         items: cart.toOrderItems(),
         customerName: info['customerName'],
         tableNumber: info['tableNumber'],
         notes: info['notes'],
       );
-      final completed = await DatabaseService.completeOrder(order.id, 'cash', discount: 0);
       cart.clear();
+
       if (mounted) {
-        await showDialog(context: context, builder: (_) => BillDialog(order: completed));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Row(
+              children: [
+                const Icon(Icons.check_circle_rounded, color: Colors.white, size: 20),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Text(
+                    'Order ${order.orderNumber} placed! Go to Orders tab to complete payment.',
+                    style: const TextStyle(color: Colors.white),
+                  ),
+                ),
+              ],
+            ),
+            backgroundColor: AppColors.success,
+            duration: const Duration(seconds: 4),
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
       }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('${'Order failed'}: $e'), backgroundColor: AppColors.error),
+          SnackBar(content: Text('Order failed: $e'), backgroundColor: AppColors.error),
         );
       }
     }
@@ -151,26 +170,27 @@ class _PosScreenState extends State<PosScreen> {
       builder: (ctx) => AlertDialog(
         backgroundColor: AppColors.surface,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        title: Text('Customer Info', style: const TextStyle(color: AppColors.textPrimary)),
+        title: const Text('Order Details', style: TextStyle(color: AppColors.textPrimary)),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             TextField(
               controller: nameCtrl,
               style: const TextStyle(color: AppColors.textPrimary),
-              decoration: InputDecoration(labelText: 'Customer Name (optional)'),
+              decoration: const InputDecoration(labelText: 'Customer Name (optional)'),
             ),
             const SizedBox(height: 12),
             TextField(
               controller: tableCtrl,
               style: const TextStyle(color: AppColors.textPrimary),
-              decoration: InputDecoration(labelText: 'Table Number (optional)'),
+              decoration: const InputDecoration(labelText: 'Table Number (optional)'),
+              keyboardType: TextInputType.number,
             ),
             const SizedBox(height: 12),
             TextField(
               controller: notesCtrl,
               style: const TextStyle(color: AppColors.textPrimary),
-              decoration: InputDecoration(labelText: 'Notes (optional)'),
+              decoration: const InputDecoration(labelText: 'Notes (optional)'),
               maxLines: 2,
             ),
           ],
@@ -178,7 +198,7 @@ class _PosScreenState extends State<PosScreen> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
-            child: Text('Cancel', style: const TextStyle(color: AppColors.textSecondary)),
+            child: const Text('Cancel', style: TextStyle(color: AppColors.textSecondary)),
           ),
           ElevatedButton(
             onPressed: () => Navigator.pop(ctx, {
@@ -186,7 +206,7 @@ class _PosScreenState extends State<PosScreen> {
               'tableNumber': tableCtrl.text.trim().isEmpty ? null : tableCtrl.text.trim(),
               'notes': notesCtrl.text.trim().isEmpty ? null : notesCtrl.text.trim(),
             }),
-            child: Text('Continue'),
+            child: const Text('Place Order'),
           ),
         ],
       ),
@@ -234,7 +254,7 @@ class _PosScreenState extends State<PosScreen> {
               label: Text(
                 cart.items.isEmpty
                     ? 'Cart is empty'
-                    : '${cart.items.length} ${'items'} • ${_currency.format(cart.total)}',
+                    : '${cart.items.length} items • ${_currency.format(cart.total)}',
                 overflow: TextOverflow.ellipsis,
               ),
               style: OutlinedButton.styleFrom(
@@ -249,7 +269,7 @@ class _PosScreenState extends State<PosScreen> {
             height: 44,
             child: ElevatedButton(
               onPressed: cart.items.isNotEmpty ? _placeOrder : null,
-              child: Text('Place Order'),
+              child: const Text('Place Order'),
             ),
           ),
         ],
@@ -355,7 +375,11 @@ class _PosScreenState extends State<PosScreen> {
       separatorBuilder: (_, __) => const SizedBox(width: 8),
       itemBuilder: (_, i) {
         final selected = i == 0 ? _selectedCategoryId == null : _categories[i - 1].id == _selectedCategoryId;
-        final label = i == 0 ? 'All' : (_categories[i - 1].icon != null ? '${_categories[i - 1].icon} ${_categories[i - 1].name}' : _categories[i - 1].name);
+        final label = i == 0
+            ? 'All'
+            : (_categories[i - 1].icon != null
+                ? '${_categories[i - 1].icon} ${_categories[i - 1].name}'
+                : _categories[i - 1].name);
         return GestureDetector(
           onTap: () => _loadProducts(i == 0 ? null : _categories[i - 1].id),
           child: AnimatedContainer(
@@ -391,7 +415,7 @@ class _PosScreenState extends State<PosScreen> {
           children: [
             const Icon(Icons.local_pizza_outlined, size: 64, color: AppColors.textMuted),
             const SizedBox(height: 16),
-            Text('No items found', style: const TextStyle(color: AppColors.textMuted)),
+            const Text('No items found', style: TextStyle(color: AppColors.textMuted)),
           ],
         ),
       );
@@ -414,26 +438,17 @@ class _PosScreenState extends State<PosScreen> {
               if (group.isGrouped) {
                 final qtyMap = {for (final v in group.variants) v.id: cart.quantityOf(v.id)};
                 return GroupedProductCard(
-  
                   baseName: group.baseName,
-  
                   variants: group.variants,
-  
                   cartQuantities: qtyMap,
-  
                   onVariantSelected: (p) => cart.addProduct(p),
-  
                 );
               } else {
                 final p = group.variants.first;
                 return ProductCard(
-  
                   product: p,
-  
                   quantity: cart.quantityOf(p.id),
-  
                   onTap: () => cart.addProduct(p),
-  
                 );
               }
             },
@@ -463,9 +478,9 @@ class _PosScreenState extends State<PosScreen> {
       ),
       child: Row(
         children: [
-          Text(
+          const Text(
             'Current Order',
-            style: const TextStyle(color: AppColors.textPrimary, fontSize: 18, fontWeight: FontWeight.w700),
+            style: TextStyle(color: AppColors.textPrimary, fontSize: 18, fontWeight: FontWeight.w700),
           ),
           const Spacer(),
           if (cart.items.isNotEmpty)
@@ -477,9 +492,9 @@ class _PosScreenState extends State<PosScreen> {
                   color: AppColors.errorBg,
                   borderRadius: BorderRadius.circular(8),
                 ),
-                child: Text(
+                child: const Text(
                   'Clear',
-                  style: const TextStyle(color: AppColors.error, fontSize: 12, fontWeight: FontWeight.w600),
+                  style: TextStyle(color: AppColors.error, fontSize: 12, fontWeight: FontWeight.w600),
                 ),
               ),
             ),
@@ -496,9 +511,9 @@ class _PosScreenState extends State<PosScreen> {
           children: [
             const Icon(Icons.shopping_cart_outlined, size: 64, color: AppColors.textMuted),
             const SizedBox(height: 12),
-            Text('Cart is empty', style: const TextStyle(color: AppColors.textMuted, fontSize: 16)),
+            const Text('Cart is empty', style: TextStyle(color: AppColors.textMuted, fontSize: 16)),
             const SizedBox(height: 4),
-            Text('Tap items to add them', style: const TextStyle(color: AppColors.textMuted, fontSize: 13)),
+            const Text('Tap items to add them', style: TextStyle(color: AppColors.textMuted, fontSize: 13)),
           ],
         ),
       );
@@ -541,9 +556,16 @@ class _PosScreenState extends State<PosScreen> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text('Total', style: const TextStyle(color: AppColors.textPrimary, fontSize: 18, fontWeight: FontWeight.w700)),
+              const Text('Total',
+                  style: TextStyle(
+                      color: AppColors.textPrimary,
+                      fontSize: 18,
+                      fontWeight: FontWeight.w700)),
               Text(_currency.format(cart.total),
-                  style: const TextStyle(color: AppColors.primary, fontSize: 22, fontWeight: FontWeight.w700)),
+                  style: const TextStyle(
+                      color: AppColors.primary,
+                      fontSize: 22,
+                      fontWeight: FontWeight.w700)),
             ],
           ),
         ],
@@ -564,7 +586,7 @@ class _PosScreenState extends State<PosScreen> {
           label: Text(
             cart.items.isEmpty
                 ? 'Add items to order'
-                : '${'Place Order'} • ${_currency.format(cart.total)}',
+                : 'Place Order • ${_currency.format(cart.total)}',
             style: const TextStyle(fontSize: 15),
           ),
         ),
@@ -577,5 +599,8 @@ class _ProductGroup {
   final String baseName;
   final List<Product> variants;
   final bool isGrouped;
-  const _ProductGroup({required this.baseName, required this.variants, required this.isGrouped});
+  const _ProductGroup(
+      {required this.baseName,
+      required this.variants,
+      required this.isGrouped});
 }
